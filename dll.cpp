@@ -158,21 +158,8 @@ void CDLL::WriteConfig()
 		
 		std::vector<SMarker> points = GetPoints();
 		for(unsigned int i = 0; i < points.size();i++)
-//		{
 			_file.Write(&points[i],sizeof(SMarker));
 
-//			SFields *field = points[i].field;
-//			if(field != NULL)
-//			{
-//				_file.Write(field,sizeof(SFields));
-//				while(field->next != NULL)
-//				{
-//					_file.Write(field->next,sizeof(SFields));
-//					field = field->next;
-//				}
-//			}
-//		}
-			
 		_file.Close();
 	}
 	
@@ -216,8 +203,6 @@ void CDLL::Kill(void)
 	NeedExit = true;
 	delete MyInfo;
 	delete MyFrame;
-	//DataThread->Delete();
-	//Broker->FreeInstance(this);
 	WriteConfig();
 
 };
@@ -239,17 +224,11 @@ std::vector<SMarker> *CDLL::GetMarkerList()
 
 void CDLL::Config()
 {
-//	MyFrame = new CMyFrame();
-//	MyFrame->ShowModal();
-//	MyFrame->Destroy();
-//	MyFrame = NULL;
 
 }
 
 void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 {
-		
-	
 	// move marker RMB need this
 	// . . . . . . . . . . . . . . . . . . . . 	
 	double mom[2];
@@ -266,23 +245,25 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	
 	if(!lmb)
 		return;
+	
+	//ShowFrameWindow(false);	
 
-	ShowFrameWindow(false);	
 	std::vector<SMarker>::iterator it;
 	it = vPoints.begin();
+	
 	while(it != vPoints.end())
 	{
-		if(IsPointInsideBox(_x, _y, it->x - TranslationX, it->y - TranslationY, it->x + RectWidth-TranslationX , it->y + RectHeight-TranslationY))
+		if(IsPointInsideBox(MapX, MapY, it->x - TranslationX, it->y - TranslationY, it->x + RectWidth-TranslationX , it->y + RectHeight-TranslationY))
 		{
 			SelectedPtr =  &*it;
-			//this->ShowInfoWindow(true);
-			ShowFrameWindow(true);
 			return;
 		}
 		
 		it++;
 	}
+	ShowFrameWindow(false);
 	SelectedPtr = NULL;
+	
 }
 
 void CDLL::ShowInfoPopupMenu()
@@ -310,17 +291,28 @@ void CDLL::ShowInfoWindow(bool show)
 
 void CDLL::MouseDBLClick(int x, int y)
 {
+	std::vector<SMarker>::iterator it;
+	it = vPoints.begin();
 	
+	while(it != vPoints.end())
+	{
+		if(IsPointInsideBox(MapX, MapY, it->x - TranslationX, it->y - TranslationY, it->x + RectWidth-TranslationX , it->y + RectHeight-TranslationY))
+		{
+			SelectedPtr =  &*it;
+			ShowFrameWindow(true);
+			return;
+		}
+		
+		it++;
+	}
+	SelectedPtr = NULL;
 	
 }
 
 
 void CDLL::ShowProperties()
 {
-	//CMyFrame *MyFrame = new CMyFrame(this);
-	//MyFrame->ShowModal();
-	//delete MyFrame;
-	
+	ShowFrameWindow(true);
 }
 
 void CDLL::CreateApiMenu(void) 
@@ -328,9 +320,9 @@ void CDLL::CreateApiMenu(void)
 
 	NaviApiMenu = new CNaviApiMenu( GetMsg(MSG_MARKERS).wchar_str());	// nie u¿uwaæ delete - klasa zwalnia obiekt automatycznie
 	NaviApiMenu->AddItem( GetMsg(MSG_NEW_MARKER).wchar_str(),this, MenuNew, true );
-	//NaviApiMenu->AddItem( GetMsg(MSG_DELETE_MARKER).wchar_str(),this, MenuDelete, true );
+	NaviApiMenu->AddItem( GetMsg(MSG_DELETE_MARKER).wchar_str(),this, MenuDelete, true );
 	//NaviApiMenu->AddItem( GetMsg(MSG_MOVE_MARKER).wchar_str(),this, MenuMove, true );
-	//NaviApiMenu->AddItem( GetMsg(MSG_PROPERTIES_MARKER).wchar_str(),this, MenuProperties, true );
+	NaviApiMenu->AddItem( GetMsg(MSG_PROPERTIES_MARKER).wchar_str(),this, MenuProperties, true );
 	
 }
 
@@ -456,11 +448,7 @@ void CDLL::CreateTexture(TTexture *Texture, GLuint *TextureID)
 
 void CDLL::CreateTextures(void) 
 {
-	//wxMemoryInputStream memory(iconset,iconset_size);
 	
-	//wxString path = wxString::Format(_("%s%s"),GetWorkDir().wc_str(),_(MARKER_ICONSET_FILE_NAME));
-	//if (!wxFileExists(path))
-		//return;
 	wxMemoryInputStream memory(icons,icons_size);
 	
 	wxZipInputStream zip(memory);
@@ -477,9 +465,6 @@ void CDLL::CreateTextures(void)
 		MarkerIcons->NewIcon(buffer, size, MarkerTextureID_0,i);
 		i++;
 	}
-	
-	//for(int i = 0; i < vPoints.size();i++)
-   //	vPoints[i].texture_id = MarkerIcons->GetItem(vPoints[i].icon_id)->texture_id;
 
 
 }
@@ -528,11 +513,13 @@ void *CDLL::MarkerNew(void *NaviMapIOApiPtr, void *Params)
 void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type = 0)
 {
 	SMarker Points;
+	memset(&Points,0,sizeof(SMarker));
 	Points.x = x;
 	Points.y = y;
 	Points.icon_id = MarkerIcons->GetItem(icon_id)->icon_id;
 	Points.texture_id = MarkerIcons->GetItem(icon_id)->texture_id;
 	Points.type = type;
+	
 		
 	if(name != NULL)
 		wcscpy_s(Points.name,MARKER_NAME_SIZE, name);
