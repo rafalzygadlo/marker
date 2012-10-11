@@ -296,8 +296,8 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		{
 			SelectedPtr =  &*it;
 			//this->ShowInfoWindow(true);
-			ShowInfoPopupMenu();
-			//ShowFrameWindow(true);
+			//ShowInfoPopupMenu();
+			ShowFrameWindow(true);
 			return;
 		}
 		
