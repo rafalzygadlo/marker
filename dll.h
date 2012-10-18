@@ -10,9 +10,6 @@
 #include "NaviFont.h"
 #include "NaviDisplayApi.h"
 
-//char iconset_zip[] = { 	#include "icons/iconset.zip" };
-
-
 #ifdef _WIN32
 	#include <windows.h>
 #endif

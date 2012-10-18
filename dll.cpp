@@ -404,28 +404,6 @@ void CDLL::Menu(int type)
 
 
 
-void CDLL::Render(void)
-{
-		
-	MapScale = Broker->GetMapScale();
-	Angle = GetBroker()->GetAngle();
-	SetMapScale(MapScale);
-	SetValues();
-		
-	if(FirstTime)
-	{
-		CreateTextures();
-		ReadConfig();
-		FirstTime = false;
-	}
-	
-	
-	RenderMarkers();
-	
-	if(SelectedPtr != NULL)
-		RenderSelection();
-
-}
 
 void CDLL::CreateSymbol(void *MemoryBlock,long MemoryBlockSize)
 {
@@ -454,6 +432,7 @@ void CDLL::CreateTextures(void)
 	wxZipInputStream zip(memory);
 	wxZipEntry *entry;
 	int i = 0;
+	
 	while((entry = zip.GetNextEntry()) != NULL)
 	{
 		wxString str = entry->GetName();
@@ -465,7 +444,6 @@ void CDLL::CreateTextures(void)
 		MarkerIcons->NewIcon(buffer, size, MarkerTextureID_0,i);
 		i++;
 	}
-
 
 }
 
@@ -855,6 +833,28 @@ void CDLL::RenderMarkers()
 	glDisable(GL_BLEND);
 	
 	
+}
+
+void CDLL::Render(void)
+{
+		
+	MapScale = Broker->GetMapScale();
+	Angle = GetBroker()->GetAngle();
+	SetValues();
+		
+	if(FirstTime)
+	{
+		CreateTextures();
+		ReadConfig();
+		FirstTime = false;
+	}
+	
+	
+	RenderMarkers();
+	
+	if(SelectedPtr != NULL)
+		RenderSelection();
+
 }
 
 bool CDLL::GetClickedOnButton()
