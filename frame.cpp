@@ -31,6 +31,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	AfterInit = false;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	Panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	Panel->SetBackgroundColour(*wxWHITE);
 			
 	// Page1
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
@@ -129,7 +130,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	Panel->SetSizer(PanelSizer);
 		
 	//Other
-	MainSizer->Add(Panel,1,wxALL|wxEXPAND,5);
+	MainSizer->Add(Panel,1,wxALL|wxEXPAND,0);
 	ButtonClose = new wxButton(this,ID_CLOSE,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
 	MainSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
 		

@@ -8,8 +8,8 @@
 
 #define BUFSIZE 512
 
-CNaviBroker *BrokerPtr;
-CNaviMapIOApi *ThisPtr;
+//CNaviBroker *BrokerPtr;
+//CNaviMapIOApi *ThisPtr;
 
 
 unsigned char PluginInfoBlock[] = {
@@ -82,7 +82,6 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 
 CDLL::~CDLL()
 {
-	WriteConfig();
 	delete FileConfig;
 	delete Font;
 	delete MarkerIcons;
@@ -148,13 +147,14 @@ void CDLL::ReadConfig()
 		if(_file.Open(PointsPath))
 		{	
 			ReadHeader();
-			SMarker *buffer = (SMarker*)malloc(sizeof(SMarker));
-			memset(buffer,0,sizeof(SMarker));
+			
 			while(!_file.Eof())
 			{	
+				SMarker *buffer = (SMarker*)malloc(sizeof(SMarker));
+				memset(buffer,0,sizeof(SMarker));
 				_file.Read(buffer,sizeof(SMarker));
 				Add(buffer->x,buffer->y,buffer->icon_id, buffer->name,buffer->description,buffer->type);
-				
+				free(buffer);
 			}
 		
 			_file.Close();
@@ -164,9 +164,9 @@ void CDLL::ReadConfig()
 
 void CDLL::ReadHeader()
 {
-	SMarkerHeader *header_buffer = (SMarkerHeader*)malloc(sizeof(SMarkerHeader));
-	_file.Read(header_buffer,sizeof(SMarkerHeader));
-	
+	SMarkerHeader *header = (SMarkerHeader*)malloc(sizeof(SMarkerHeader));
+	_file.Read(header,sizeof(SMarkerHeader));
+	free(header);
 }
 
 void CDLL::WriteConfig()
@@ -177,9 +177,9 @@ void CDLL::WriteConfig()
 	{
 		WriteHeader();
 		
-		std::vector<SMarker> points = GetPoints();
-		for(unsigned int i = 0; i < points.size();i++)
-			_file.Write(&points[i],sizeof(SMarker));
+		
+		for(unsigned int i = 0; i < vPoints.size();i++)
+			_file.Write(vPoints[i],sizeof(SMarker));
 
 		_file.Close();
 	}
@@ -215,7 +215,8 @@ void CDLL::SetButtonAction(int action)
 
 void CDLL::Run(void *Params)
 {
-	ThisPtr = (CNaviMapIOApi*)this;
+	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF );
+//	ThisPtr = (CNaviMapIOApi*)this;
 
 }
 
@@ -226,6 +227,11 @@ void CDLL::Kill(void)
 	delete MyFrame;
 	WriteConfig();
 
+	for(size_t i = 0; i < vPoints.size(); i++)
+		free(vPoints[i]);
+
+	vPoints.clear();
+	
 };
 
 bool CDLL::GetNeedExit(void) 
@@ -237,11 +243,6 @@ wxArrayString *CDLL::GetDataArray()
 {
 	return &DataArray;
 };
-
-std::vector<SMarker> *CDLL::GetMarkerList()
-{
-	return &vPoints;
-}
 
 void CDLL::Config()
 {
@@ -264,24 +265,24 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	MapY = _y;
 	// . . . . . . . . . . . . . . . . . . . . 	
 	
+		
 	if(!lmb)
 		return;
 	
-	//ShowFrameWindow(false);	
-
-	std::vector<SMarker>::iterator it;
+	std::vector<SMarker*>::iterator it;
 	it = vPoints.begin();
 	
 	while(it != vPoints.end())
 	{
-		if(IsPointInsideBox(MapX, MapY, it->x - TranslationX, it->y - TranslationY, it->x + RectWidth-TranslationX , it->y + RectHeight-TranslationY))
+		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
 		{
-			SelectedPtr =  &*it;
+			SelectedPtr =  *it;
 			return;
 		}
 		
 		it++;
 	}
+
 	ShowFrameWindow(false);
 	SelectedPtr = NULL;
 	
@@ -312,14 +313,14 @@ void CDLL::ShowInfoWindow(bool show)
 
 void CDLL::MouseDBLClick(int x, int y)
 {
-	std::vector<SMarker>::iterator it;
+	std::vector<SMarker*>::iterator it;
 	it = vPoints.begin();
 	
 	while(it != vPoints.end())
 	{
-		if(IsPointInsideBox(MapX, MapY, it->x - TranslationX, it->y - TranslationY, it->x + RectWidth-TranslationX , it->y + RectHeight-TranslationY))
+		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
 		{
-			SelectedPtr =  &*it;
+			SelectedPtr =  *it;
 			ShowFrameWindow(true);
 			return;
 		}
@@ -468,7 +469,7 @@ void CDLL::CreateTextures(void)
 
 }
 
-std::vector <SMarker> CDLL::GetPoints()
+std::vector <SMarker*> CDLL::GetPoints()
 {
 	return vPoints;
 }
@@ -483,7 +484,7 @@ void *CDLL::MarkerGet(void *NaviMapIOApiPtr, void *Params)
 
 SMarker *CDLL::Get(int id)
 {
-	return &vPoints[id];
+	return vPoints[id];
 }
 
 
@@ -511,20 +512,20 @@ void *CDLL::MarkerNew(void *NaviMapIOApiPtr, void *Params)
 
 void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type = 0)
 {
-	SMarker Points;
-	memset(&Points,0,sizeof(SMarker));
-	Points.x = x;
-	Points.y = y;
-	Points.icon_id = MarkerIcons->GetItem(icon_id)->icon_id;
-	Points.texture_id = MarkerIcons->GetItem(icon_id)->texture_id;
-	Points.type = type;
+	SMarker *Points = (SMarker*)malloc(sizeof(SMarker));
+	memset(Points,0,sizeof(SMarker));
+	Points->x = x;
+	Points->y = y;
+	Points->icon_id = MarkerIcons->GetItem(icon_id)->icon_id;
+	Points->texture_id = MarkerIcons->GetItem(icon_id)->texture_id;
+	Points->type = type;
 	
 		
 	if(name != NULL)
-		wcscpy_s(Points.name,MARKER_NAME_SIZE, name);
+		wcscpy_s(Points->name,MARKER_NAME_SIZE, name);
 	
 	if(description != NULL)
-		wcscpy_s(Points.description,MARKER_DESCRIPTION_SIZE,description);
+		wcscpy_s(Points->description,MARKER_DESCRIPTION_SIZE,description);
 	
 	//LastAdedMarker = &Points;	
 	vPoints.push_back(Points);
@@ -566,11 +567,11 @@ void CDLL::AddField(wchar_t *name, wchar_t *value, SMarker *Marker )
 
 void CDLL::Delete()
 {
-	std::vector<SMarker>::iterator it;
+	std::vector<SMarker*>::iterator it;
 	it = vPoints.begin();	
 	while(it != vPoints.end())
 	{
-		if(SelectedPtr == &*it)
+		if(SelectedPtr == *it)
 		{
 			vPoints.erase(it);
 			SelectedPtr = NULL;
@@ -656,7 +657,7 @@ void CDLL::RenderPoints()
 	for(unsigned int i = 0; i < vPoints.size(); i++)
 	{
 		glPushMatrix();
-		glTranslatef(vPoints[i].x,vPoints[i].y,0.0f);
+		glTranslatef(vPoints[i]->x,vPoints[i]->y,0.0f);
 		glBegin(GL_POINTS);
 			glVertex2f(0.0f,0.0f); 
 		glEnd();	
@@ -771,9 +772,9 @@ float CDLL::RenderText(double x, double y, char *text)
 {
 	if(MapScale < Factor)
 		return 0;
-	
-	float width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
-	float height = (Font->GetHeight()/2)/SmoothScaleFactor;
+	float width, height;
+	width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
+	height = (Font->GetHeight()/2)/SmoothScaleFactor;
 		
 	Font->Render(x - width , y - height , text);
 
@@ -834,9 +835,9 @@ void CDLL::RenderMarkers()
 		
 		glColor3f(1.0f,1.0f,1.0f);
 		glPushMatrix();
-		glTranslatef(vPoints[i].x,vPoints[i].y,0.0f);
+		glTranslatef(vPoints[i]->x,vPoints[i]->y,0.0f);
 		glRotatef(-Angle,0.0f,0.0f,1.0f);
-		glBindTexture( GL_TEXTURE_2D, vPoints[i].texture_id );
+		glBindTexture( GL_TEXTURE_2D, vPoints[i]->texture_id );
 
 		glBegin(GL_QUADS);
 			glTexCoord2f(1.0f,1.0f); glVertex2f( TranslationX,  -TranslationY);	
@@ -849,7 +850,7 @@ void CDLL::RenderMarkers()
 		glDisable(GL_TEXTURE_2D);
 		glPopMatrix();
 		
-		RenderText(vPoints[i].x , vPoints[i].y + RectWidth , vPoints[i].name);
+		RenderText(vPoints[i]->x , vPoints[i]->y + RectWidth , vPoints[i]->name);
 	}
 	glDisable(GL_BLEND);
 	
@@ -858,7 +859,7 @@ void CDLL::RenderMarkers()
 
 void CDLL::Render(void)
 {
-		
+	
 	MapScale = Broker->GetMapScale();
 	Angle = GetBroker()->GetAngle();
 	SetValues();
@@ -1021,7 +1022,11 @@ CMarkerIcons::CMarkerIcons()
 
 CMarkerIcons::~CMarkerIcons()
 {
-
+	for(size_t i = 0; i < vIcons.size(); i++)
+	{
+		free(vIcons[i]->icon);
+		free(vIcons[i]);
+	}
 }
 
 void CMarkerIcons::NewIcon(unsigned char *data, int size, int texture_id, int icon_id)
@@ -1161,7 +1166,7 @@ unsigned char *GetNaviPluginInfoBlock()
 
 void NAVIMAPAPI FreeNaviClassInstance(void *ptr)
 {
-	delete ptr;
+	delete (CDLL*)ptr;
 }
 ////////////////////////////////////////////////////////////////////////////
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 

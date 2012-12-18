@@ -54,7 +54,7 @@ class CDLL :public CNaviMapIOApi
 	CNaviBroker *Broker;
 	wxArrayString DataArray;
 	wxString PointsPath;
-	std::vector <SMarker> vPoints;
+	std::vector <SMarker*> vPoints;
 	int MouseX,MouseY;
 	int Type;
 	double RectWidth;
@@ -78,7 +78,7 @@ class CDLL :public CNaviMapIOApi
 	void ReadConfig();
 	void CreateTextures(void);
 	void WriteConfig();
-	std::vector <SMarker> GetPoints();
+	std::vector <SMarker*> GetPoints();
 	void SetMouseXY(int x, int y);
 	void SetMapScale(double scale);
 	void SetClickedOnButton(bool value);
@@ -133,7 +133,6 @@ public:
 	wxArrayString *GetDataArray();
 	int GetErrorCode();
 	SMarker *GetSelectedPtr();
-	std::vector<SMarker> *GetMarkerList();
 	CMarkerIcons *GetMarkerIcons();
 	size_t GetMarkerIconsCount();
 	SIcon *GetMarkerIcon(int id);

@@ -10,10 +10,10 @@ const wxChar *nvLanguage[2][14] =
 	{
 	/*0*/	_("Marker"),
 	/*1*/	_("Markers"),
-	/*2*/	_("New Marker"),
-	/*3*/	_("Delete Marker"),
+	/*2*/	_("Marker New"),
+	/*3*/	_("Marker Delete"),
 	/*4*/	_("Move Marker Here"),
-	/*5*/	_("Properties"),
+	/*5*/	_("Marker Properties"),
 	/*6*/	_("Select marker first"), 
 	/*7*/   _("Name"),
 	/*8*/	_("Description"),
