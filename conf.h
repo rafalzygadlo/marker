@@ -76,6 +76,9 @@
 #define MSG_CHANGE_ICON			13
 //. . . . . . . . . . . . . . . . .
 
+#define NV_PI 3.1415926535897932384626433
+enum nvDistanceUnits { nvDefault, nvKilometer, nvNauticMiles, nvMeter };
+
 typedef struct
 {
 	int version;

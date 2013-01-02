@@ -37,7 +37,7 @@ class CDLL :public CNaviMapIOApi
 	double Factor;
 	bool MoveMarker;
 	double MOM_X, MOM_Y;
-	SMarker *SelectedPtr;
+	SMarker *SelectedPtr, *OldSelectedPtr;
 	int ErrorCode;
 	double SmoothScaleFactor;
 	bool NeedExit;
@@ -55,6 +55,7 @@ class CDLL :public CNaviMapIOApi
 	wxArrayString DataArray;
 	wxString PointsPath;
 	std::vector <SMarker*> vPoints;
+	std::vector <SMarker*> vDistance;
 	int MouseX,MouseY;
 	int Type;
 	double RectWidth;
@@ -112,6 +113,7 @@ class CDLL :public CNaviMapIOApi
 	void WriteHeader();
 	int Count();
 	SMarker *Get(int id);
+	double Distance();
 	
 	
 	static void *MenuConfig(void *NaviMapIOApiPtr, void *Input);

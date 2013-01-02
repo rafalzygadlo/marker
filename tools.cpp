@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <wx/wx.h>
+#include "conf.h"
 #include "tools.h"
 #define CONVERTED_DEGREE_LENGTH	15
 
@@ -95,4 +96,29 @@ wxString FormatLatitude(float y)
 
     return str;
 
+}
+
+double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistanceUnits distanceunit) {
+
+	double dLat = nvToRad( lat2 - lat1 );
+	double dLon = nvToRad( lon2 - lon1 );
+	double R = 6371.0;
+
+	double a = ( sin(dLat/2) * sin(dLat/2) )  +  ( cos( nvToRad(lat1) ) * cos( nvToRad(lat2) ) * sin(dLon/2) * sin(dLon/2) );
+	double c = 2 * atan2( sqrt(a), sqrt( 1 - a ) );
+
+	switch( distanceunit ) {
+
+	case nvKilometer: return R * c;
+	case nvNauticMiles: return (R *c) / 1.852;
+	default:
+		return c;
+
+	}
+}
+
+double nvToRad( double degree ) 
+{
+
+	return (NV_PI * degree / 180 );
 }

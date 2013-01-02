@@ -65,7 +65,7 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	
 	MarkerIcons = new CMarkerIcons();
 	
-	SelectedPtr = NULL;
+	SelectedPtr = OldSelectedPtr = NULL;
 	DBLClick = false;
 
 	this->AddExecuteFunction("marker_MarkerNew", MarkerNew);
@@ -255,7 +255,6 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	// . . . . . . . . . . . . . . . . . . . . 	
 	double mom[2];
 	double _x,_y;
-	
 	Broker->GetMouseOM(mom);
 	MapScale = Broker->GetMapScale();
 	Broker->Unproject(mom[0],mom[1],&_x,&_y);
@@ -264,27 +263,41 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	MapX = _x;
 	MapY = _y;
 	// . . . . . . . . . . . . . . . . . . . . 	
-	
+	Broker->Refresh(Broker->GetParentPtr());
 		
 	if(!lmb)
 		return;
 	
 	std::vector<SMarker*>::iterator it;
 	it = vPoints.begin();
+	bool add = false;
 	
 	while(it != vPoints.end())
 	{
 		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
 		{
 			SelectedPtr =  *it;
-			return;
+			add = true;
+			break;
 		}
 		
 		it++;
 	}
-
+	
 	ShowFrameWindow(false);
-	SelectedPtr = NULL;
+
+	if(add)
+	{
+		
+		vDistance.push_back(*it);			
+		OldSelectedPtr = SelectedPtr;
+	
+	}else{
+	
+		SelectedPtr = NULL;
+		OldSelectedPtr = NULL;
+	}
+	
 	
 }
 
@@ -649,7 +662,16 @@ void CDLL::SetValues()
 
 	
 }
+/*
+void CDLL::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
+{
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_DOUBLE, 0, RawData);
+    glDrawArrays(Mode, 0, DataLength);
+    glDisableClientState(GL_VERTEX_ARRAY);
+}
 
+*/
 void CDLL::RenderPoints()
 {
 	glPointSize(20);
@@ -668,15 +690,54 @@ void CDLL::RenderPoints()
 
 void CDLL::RenderDistance()
 {
-	glLineWidth(3);
+	
+	//glLineWidth(2);
 	glColor3f(1.0f,0.0f,0.0f);
+	size_t counter = 1;				
+	
+	glBegin(GL_LINE_STRIP);
+	
+	for(size_t i = 0; i < vDistance.size(); i++)
+		glVertex2f(vDistance[i]->x,vDistance[i]->y);			
 		
-	glBegin(GL_LINES);
-			glVertex2f(SelectedPtr->x,SelectedPtr->y);
-			glVertex2f(MapX ,MapY);			
+	if(SelectedPtr != NULL)
+		glVertex2f(MapX,MapY);
 	glEnd();
 	
-	glLineWidth(1);
+	if(vDistance.size() > 1)
+	{
+		for(size_t i = 0; i < vDistance.size() - 1; i++)
+		{
+			char val[8];
+			double _x1,_x2,_y1,_y2;
+		
+			Broker->Project(vDistance[i]->x,vDistance[i]->y,&_x1,&_y1);
+			Broker->Project(vDistance[i + 1]->x,vDistance[i + 1]->y,&_x2,&_y2);
+			double dst = nvDistance(_x1,_y1,_x2,_y2,nvDefault);
+			sprintf(val,"%4.2f",nvDistance(_x1,_y1,_x2,_y2,nvKilometer));
+			
+			glPushMatrix();
+			
+			glTranslatef(vDistance[i]->x + dst,vDistance[i]->y + dst ,0.0f);
+			glRotatef(0.0f,vDistance[i]->y,0.0f,1.0f);
+			RenderText(0.0,0.0,val);
+			glPopMatrix();
+			
+		
+		}
+	}
+	//char val[8];
+	//double _x1,_x2,_y1,_y2;
+	//Broker->Project(SelectedPtr_1->x,SelectedPtr_1->y,&_x1,&_y1);
+	//Broker->Project(SelectedPtr_2->x,SelectedPtr_2->y,&_x2,&_y2);
+	//sprintf(val,"%4.2f",nvDistance(_x1,_y1,_x2,_y2,nvKilometer));
+		
+	//RenderText(MapX,MapY,val);
+	
+	//}		
+		
+	//glLineWidth(1);
+
 }
 
 void CDLL::RenderHotSpot()
@@ -687,42 +748,15 @@ void CDLL::RenderHotSpot()
 void CDLL::	RenderSelection()
 {
 	
-	
-	glEnable(GL_TEXTURE_2D);		
 	glEnable(GL_BLEND);
 	
 	double x,y;
 	x = SelectedPtr->x; 
 	y = SelectedPtr->y;
 		
-	//glBindTexture( GL_TEXTURE_2D, MarkerTextureID_0 );
-	
-	glPushMatrix();
-		glTranslatef(x,y,0.0f);
-		glDisable(GL_TEXTURE_2D);
-
-	//hot spot
-	//glColor4f(1.0f,1.0f,1.0f,1.0f);	
-		//glPointSize(5);
-		//glBegin(GL_POINTS);
-			//glVertex2f(0.0,0.0);
-		//glEnd();
-	
-	glPopMatrix();
-		
-	
+	glColor4f(1.0f,1.0f,1.0f,0.5f);	
 	glPushMatrix();
 	glTranslatef(x , y ,0.0f);
-	
-		//glEnable(GL_POINT_SMOOTH);
-	// hot spot
-		//glColor4f(1.0f,1.0f,1.0f,1.0f);	
-		//glPointSize(5);
-		//glBegin(GL_POINTS);
-			//glVertex2f(0.0,0.0);
-		//glEnd();
-	
-		glColor4f(1.0f,1.0f,1.0f,0.5f);	
 		glBegin(GL_POLYGON);
 			glVertex2f(-InfoWidth, -InfoHeight);
 			glVertex2f(-InfoWidth , InfoHeight);
@@ -730,29 +764,10 @@ void CDLL::	RenderSelection()
 			glVertex2f(InfoWidth, -InfoHeight);
 		glEnd();
 		
-		//glColor4f(1.0f,1.0f,1.0f,0.5f);	
-		//glBegin(GL_POLYGON);
-			//glVertex2f(-InfoWidth + InfoMargin, -InfoHeight + InfoMargin);
-			//glVertex2f(-InfoWidth + InfoMargin , InfoHeight + InfoMargin);
-			//glVertex2f( InfoWidth + InfoMargin , InfoHeight + InfoMargin);
-			//glVertex2f( InfoWidth + InfoMargin, -InfoHeight + InfoMargin);
-		//glEnd();
-	
 	glPopMatrix();
-	
-	
-	//char text[128];
-	//double to_x, to_y;
-	//GetBroker()->Project(x,y,&to_x,&to_y);
-	//glColor4f(1.0f,1.0f,1.0f,1.0f);
-		
-	//float height = RenderText(x + TranslationX + InfoWidth , y , SelectedPtr->name);
-	//sprintf(text,"%s %s",FormatLongitude(to_x).char_str(),FormatLatitude(-to_y).char_str());
-	//height = RenderText(x + TranslationX + InfoWidth , y + height * 2, text);
 			
 	glDisable(GL_BLEND);
-	glDisable(GL_POINT_SMOOTH);
-
+	
 }
 
 float CDLL::RenderText(double x, double y, wchar_t *text)
@@ -781,60 +796,19 @@ float CDLL::RenderText(double x, double y, char *text)
 	return height;
 }
 
-void CDLL::RenderIcons()
-{
-	CMarkerIcons *icons = GetMarkerIcons();
-	std::vector<SIcon*>::iterator it = icons->First();
-	SIcon *ico;
-
-	
-	glEnable(GL_BLEND);
-	glPushMatrix();
-	glTranslatef(SelectedPtr->x + RectWidth ,SelectedPtr->y + InfoHeight,0.0f);
-	
-	while (it != icons->Last())
-	{
-		ico = *it;
-		glBindTexture( GL_TEXTURE_2D, ico->texture_id );
-		
-		glBegin(GL_QUADS);
-			glColor4f(1.0,1.0,1.0,0.2);
-			glVertex2d(TranslationX, -TranslationY);
-			glVertex2d(TranslationX, TranslationY);
-			glVertex2d(-TranslationX, TranslationY);
-			glVertex2d(-TranslationX, -TranslationY);
-		glEnd();
-		
-		glEnable(GL_TEXTURE_2D);
-			glColor4f(1.0,1.0,1.0,1.0);
-		glBegin(GL_QUADS);
-			glTexCoord2f(1.0f,1.0f); glVertex2f( TranslationX,  -TranslationY);	
-			glTexCoord2f(1.0f,0.0f); glVertex2f( TranslationX,  TranslationY);
-			glTexCoord2f(0.0f,0.0f); glVertex2f(  -TranslationX,   TranslationY);
-			glTexCoord2f(0.0f,1.0f); glVertex2f(  -TranslationX ,  -TranslationY);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);		
-		
-		
-		it++;
-
-	}
-	glDisable(GL_BLEND);
-	glPopMatrix();
-	
-}
 
 void CDLL::RenderMarkers()
 {
 	
 	glEnable(GL_BLEND);	
+	glEnable(GL_TEXTURE_2D);		
+	
 	for(unsigned int i = 0; i < vPoints.size(); i++)
 	{
 		
-		glEnable(GL_TEXTURE_2D);		
-		
 		glColor3f(1.0f,1.0f,1.0f);
 		glPushMatrix();
+		
 		glTranslatef(vPoints[i]->x,vPoints[i]->y,0.0f);
 		glRotatef(-Angle,0.0f,0.0f,1.0f);
 		glBindTexture( GL_TEXTURE_2D, vPoints[i]->texture_id );
@@ -845,14 +819,16 @@ void CDLL::RenderMarkers()
 			glTexCoord2f(0.0f,0.0f); glVertex2f(  -TranslationX,   TranslationY);
 			glTexCoord2f(0.0f,1.0f); glVertex2f(  -TranslationX ,  -TranslationY);
 		glEnd();
-
-		
-		glDisable(GL_TEXTURE_2D);
+				
 		glPopMatrix();
+		
 		
 		RenderText(vPoints[i]->x , vPoints[i]->y + RectWidth , vPoints[i]->name);
 	}
+	
 	glDisable(GL_BLEND);
+	glDisable(GL_TEXTURE_2D);
+	
 	
 	
 }
@@ -872,6 +848,7 @@ void CDLL::Render(void)
 	}
 	
 	
+	RenderDistance();
 	RenderMarkers();
 	
 	if(SelectedPtr != NULL)
