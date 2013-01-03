@@ -5,6 +5,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include "icons.h"
+#include "info.h"
 
 #define BUFSIZE 512
 
@@ -74,9 +75,8 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	Font = new CNaviPixmapFont(FONT_NAME,FONT_SIZE);
 	MyFrame = NULL;
 	MyInfo = NULL;
-	
-	
-	CreateApiMenu();
+		
+	//CreateApiMenu();
 
 }
 
@@ -85,6 +85,9 @@ CDLL::~CDLL()
 	delete FileConfig;
 	delete Font;
 	delete MarkerIcons;
+	delete MyInfo;
+	delete MyFrame;
+
 }
 
 SMarker *CDLL::GetSelectedPtr()
@@ -160,6 +163,7 @@ void CDLL::ReadConfig()
 			_file.Close();
 		}
 	}
+
 }
 
 void CDLL::ReadHeader()
@@ -223,8 +227,6 @@ void CDLL::Run(void *Params)
 void CDLL::Kill(void)
 {
 	NeedExit = true;
-	delete MyInfo;
-	delete MyFrame;
 	WriteConfig();
 
 	for(size_t i = 0; i < vPoints.size(); i++)
@@ -264,7 +266,10 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	MapY = _y;
 	// . . . . . . . . . . . . . . . . . . . . 	
 	Broker->Refresh(Broker->GetParentPtr());
-		
+	
+	if(rmb)
+		vDistance.clear();
+
 	if(!lmb)
 		return;
 	
@@ -277,15 +282,14 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
 		{
 			SelectedPtr =  *it;
+			ShowPopupMenu(true);
 			add = true;
 			break;
 		}
 		
 		it++;
 	}
-	
-	ShowFrameWindow(false);
-
+		
 	if(add)
 	{
 		
@@ -296,16 +300,22 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	
 		SelectedPtr = NULL;
 		OldSelectedPtr = NULL;
+		ShowFrameWindow(false);
+		ShowPopupMenu(false);
+
 	}
 	
 	
 }
 
-void CDLL::ShowInfoPopupMenu()
+void CDLL::ShowPopupMenu(bool show)
 {
 	if(MyInfo == NULL)
 		MyInfo = new CMyInfo(this);
-	MyInfo->ShowPopupMenu();
+	MyInfo->ShowWindow(show);
+	
+	//delete MyInfo;
+	//MyInfo->ShowPopupMenu();
 }
 
 void CDLL::ShowFrameWindow(bool show)
@@ -315,17 +325,10 @@ void CDLL::ShowFrameWindow(bool show)
 	MyFrame->ShowWindow(show);
 }
 
-void CDLL::ShowInfoWindow(bool show)
-{
-	
-	if(MyInfo == NULL)
-		MyInfo = new CMyInfo(this);
-	MyInfo->ShowWindow(show);
-}
-
-
 void CDLL::MouseDBLClick(int x, int y)
 {
+
+	
 	std::vector<SMarker*>::iterator it;
 	it = vPoints.begin();
 	
@@ -710,16 +713,26 @@ void CDLL::RenderDistance()
 		{
 			char val[8];
 			double _x1,_x2,_y1,_y2;
+			double x1,x2,y1,y2;
 		
-			Broker->Project(vDistance[i]->x,vDistance[i]->y,&_x1,&_y1);
-			Broker->Project(vDistance[i + 1]->x,vDistance[i + 1]->y,&_x2,&_y2);
-			double dst = nvDistance(_x1,_y1,_x2,_y2,nvDefault);
-			sprintf(val,"%4.2f",nvDistance(_x1,_y1,_x2,_y2,nvKilometer));
+			x1 = vDistance[i]->x;
+			x2 = vDistance[i+1]->x;
+
+			y1 = vDistance[i]->y;
+			y2 = vDistance[i+1]->y;
+
+			Broker->Project(x1,y1,&_x1,&_y1);
+			Broker->Project(x2,y2,&_x2,&_y2);
+			//double dst = nvDistance(_x1,_y1,_x2,_y2,nvDefault);
+			sprintf(val,"%4.2f",nvDistance(_x1,_y1,_x2,_y2,nvNauticMiles));
 			
+			double v1,v2;
+			nvMidPoint(x1,y1,x2,y2,&v1,&v2);
+
 			glPushMatrix();
 			
-			glTranslatef(vDistance[i]->x + dst,vDistance[i]->y + dst ,0.0f);
-			glRotatef(0.0f,vDistance[i]->y,0.0f,1.0f);
+			glTranslatef(v1 ,v2 ,0.0f);
+			//glRotatef(0.0f,vDistance[i]->y,0.0f,1.0f);
 			RenderText(0.0,0.0,val);
 			glPopMatrix();
 			
@@ -896,95 +909,6 @@ int CDLL::GetErrorCode()
 	return ErrorCode;
 }
 
-//. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-//
-// info window do menu i info boxa
-//
-//. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-
-
-BEGIN_EVENT_TABLE(CMyInfo,wxDialog)
-	EVT_CONTEXT_MENU(CMyInfo::OnContextMenu)
-	EVT_MENU(123,CMyInfo::On123)
-	//EVT_PAINT
-END_EVENT_TABLE()
-
-
-CMyInfo::CMyInfo(CDLL *Parent)
-:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER )
-{
-	m_DLL = Parent;
-
-	this->SetForegroundColour(*wxRED);
-	wxBoxSizer *TopSizer = new wxBoxSizer(wxVERTICAL);
-	wxButton *ButtonClose = new wxButton(this,wxID_ANY,_("Close"),wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(ButtonClose,0,wxALL,5);
-		
-	wxStaticText *labellon = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(labellon,0,wxALL,5);
-
-	textlon = new wxStaticText(this,wxID_ANY,wxEmptyString, wxDefaultPosition, wxDefaultSize);
-	TopSizer->Add(textlon,0,wxALL,5);
-	
-	wxStaticText *labellat = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(labellat,0,wxALL,5);
-	
-	textlat = new wxStaticText(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(textlat,0,wxALL,5);
-
-	this->SetSizer(TopSizer);
-
-	this->SetBackgroundColour(wxColor(255,255,255));
-	this->SetTransparent(200);
-	
-	
-}
-
-CMyInfo::~CMyInfo()
-{
-}
-
-
-
-//void CMyInfo::OnPaint(wxPaintEvent &event)
-//{
-	//wxWindowDC *dc;
-	//dc.
-//}
-
-void CMyInfo::ShowPopupMenu()
-{	
-	wxMenu *menu  = new wxMenu();
-	menu->Append(123,_("abc"));
-	PopupMenu(menu);
-		
-}
-
-void CMyInfo::ShowWindow(bool show)
-{
-	if(show)
-	{
-		double to_x, to_y;
-		SMarker *MarkerSelectedPtr = m_DLL->GetSelectedPtr();
-		m_DLL->GetBroker()->Project(MarkerSelectedPtr->x,MarkerSelectedPtr->y,&to_x,&to_y);
-		textlon->SetLabel(FormatLongitude(to_x));
-		textlat->SetLabel(FormatLongitude(-to_y));
-	}
-	
-	Show(show);
-}
-
-void CMyInfo::OnContextMenu(wxContextMenuEvent &event)
-{
-	//delete menu;
-}
-
-void CMyInfo::On123(wxCommandEvent &event)
-{
-	//CDLL *dll = m_DLL;
-	m_DLL->Delete();
-	//wxMessageBox(_("aaa"));
-}
 
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 //

@@ -94,7 +94,7 @@ typedef struct Fields
 
 } SFields;
 
-typedef struct
+typedef struct Marker
 {
 	float x;
 	float y;

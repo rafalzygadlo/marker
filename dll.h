@@ -9,6 +9,7 @@
 #include <GL/gl.h>
 #include "NaviFont.h"
 #include "NaviDisplayApi.h"
+#include "conf.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -18,7 +19,6 @@ class CDataThread;
 class CMarkerIcons;
 class CMyFrame;
 class CMyInfo;
-
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 //DLL
 class CDLL :public CNaviMapIOApi
@@ -143,8 +143,7 @@ public:
 	void SetFilePath(wxString file);
 	void SetMarkerTextureID(int id);
 	void SetMarkerIconID(int id);
-	void ShowInfoPopupMenu();
-	void ShowInfoWindow(bool show);
+	void ShowPopupMenu(bool show);
 	void ShowFrameWindow(bool show);
 	
 	virtual void Run(void *Params); 
@@ -177,47 +176,5 @@ public:
 	SIcon *GetItem(int id);
 	
 };
-
-class CMyInfo: public wxDialog
-{
-		wxStaticText *textlon;
-		wxStaticText *textlat;
-		CDLL *m_DLL;
-	public:
-		CMyInfo(CDLL *Parent);
-		~CMyInfo();
-		void OnContextMenu(wxContextMenuEvent &event);
-		void ShowPopupMenu();
-		void ShowWindow(bool show);
-		void On123(wxCommandEvent &event);
-		DECLARE_EVENT_TABLE();
-	
-};
-
-/*
-class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi 
-{
-	
-	wxNotebook *Notebook;
-	SMarker *MarkerSelectedPtr;
-	void DrawMarkerData(wxGCDC &dc);
-	
-public:
-	
-	CDisplayPlugin(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL, const wxString& name = wxT("DisplayApiPanel") );
-	~CDisplayPlugin();
-	
-	virtual bool IsValidSignal(CDisplaySignal *SignalID);
-	virtual void OnWork(CDisplaySignal *Signal);
-	virtual void BeforeWork(CDisplaySignal *Signal);
-	virtual void AfterWork(CDisplaySignal *Signal);
-	virtual void OnRender(wxGCDC &dc);
-
-	
-	
-	//DECLARE_EVENT_TABLE();
-};
-
-*/
 
 #endif 

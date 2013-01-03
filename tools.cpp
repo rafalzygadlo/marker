@@ -117,8 +117,13 @@ double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistance
 	}
 }
 
+void nvMidPoint(double lon1, double lat1,double lon2, double lat2, double *v1, double *v2)
+{
+	*v1 = (lon1 + lon2) / 2;
+	*v2 = (lat1 + lat2) / 2;
+}
+
 double nvToRad( double degree ) 
 {
-
 	return (NV_PI * degree / 180 );
 }
