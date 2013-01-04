@@ -114,6 +114,7 @@ class CDLL :public CNaviMapIOApi
 	int Count();
 	SMarker *Get(int id);
 	double Distance();
+	bool SetMarker(double x, double y);
 	
 	
 	static void *MenuConfig(void *NaviMapIOApiPtr, void *Input);

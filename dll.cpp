@@ -76,7 +76,7 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	MyFrame = NULL;
 	MyInfo = NULL;
 		
-	//CreateApiMenu();
+	CreateApiMenu();
 
 }
 
@@ -254,7 +254,10 @@ void CDLL::Config()
 void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 {
 	// move marker RMB need this
-	// . . . . . . . . . . . . . . . . . . . . 	
+	// . . . . . . . . . . . . . . . . . . . . 
+	if(FirstTime)
+		return;
+	
 	double mom[2];
 	double _x,_y;
 	Broker->GetMouseOM(mom);
@@ -270,30 +273,19 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	if(rmb)
 		vDistance.clear();
 
-	if(!lmb)
-		return;
-	
-	std::vector<SMarker*>::iterator it;
-	it = vPoints.begin();
 	bool add = false;
 	
-	while(it != vPoints.end())
-	{
-		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
-		{
-			SelectedPtr =  *it;
-			ShowPopupMenu(true);
-			add = true;
-			break;
-		}
-		
-		it++;
-	}
-		
+	if(SetMarker(MapX,MapY))
+		add = true;
+	
+	if(!lmb)
+		return;
+
 	if(add)
 	{
-		
-		vDistance.push_back(*it);			
+		ShowFrameWindow(true);
+		vDistance.clear();
+		vDistance.push_back(SelectedPtr);
 		OldSelectedPtr = SelectedPtr;
 	
 	}else{
@@ -301,11 +293,32 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		SelectedPtr = NULL;
 		OldSelectedPtr = NULL;
 		ShowFrameWindow(false);
-		ShowPopupMenu(false);
+		ShowFrameWindow(false);
 
 	}
 	
 	
+}
+
+bool CDLL::SetMarker(double x, double y)
+{
+	std::vector<SMarker*>::iterator it;
+	it = vPoints.begin();
+	
+	
+	while(it != vPoints.end())
+	{
+		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
+		{
+			SelectedPtr =  *it;
+			((wxWindow*)Broker->GetParentPtr())->SetCursor(wxCURSOR_HAND);
+			return true;
+		}
+		
+		it++;
+	}
+	SelectedPtr = NULL;
+	return false;
 }
 
 void CDLL::ShowPopupMenu(bool show)
@@ -327,26 +340,8 @@ void CDLL::ShowFrameWindow(bool show)
 
 void CDLL::MouseDBLClick(int x, int y)
 {
-
-	
-	std::vector<SMarker*>::iterator it;
-	it = vPoints.begin();
-	
-	while(it != vPoints.end())
-	{
-		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
-		{
-			SelectedPtr =  *it;
-			ShowFrameWindow(true);
-			return;
-		}
-		
-		it++;
-	}
-	SelectedPtr = NULL;
-	
+	SetMarker(MapX,MapY);
 }
-
 
 void CDLL::ShowProperties()
 {
@@ -760,23 +755,42 @@ void CDLL::RenderHotSpot()
 
 void CDLL::	RenderSelection()
 {
-	
+	return;
 	glEnable(GL_BLEND);
 	
 	double x,y;
 	x = SelectedPtr->x; 
 	y = SelectedPtr->y;
-		
-	glColor4f(1.0f,1.0f,1.0f,0.5f);	
+	/*	
+	glColor4f(1.0f,1.0f,1.0f,0.2f);	
 	glPushMatrix();
-	glTranslatef(x , y ,0.0f);
-		glBegin(GL_POLYGON);
+	glTranslatef(x + InfoWidth/2, y  ,0.0f);
+		glBegin(GL_QUADS);
 			glVertex2f(-InfoWidth, -InfoHeight);
 			glVertex2f(-InfoWidth , InfoHeight);
 			glVertex2f(InfoWidth , InfoHeight);
 			glVertex2f(InfoWidth, -InfoHeight);
 		glEnd();
+	
+	glPopMatrix();	
+	*/
+	
+	glPushMatrix();
+	
+	glColor4f(1.0f,1.0f,1.0f,0.5f);	
+	glTranslatef(x , y  ,0.0f);
+		glBegin(GL_QUADS);
+			glVertex2f(-RectWidth, -RectHeight);
+			glVertex2f(-RectWidth , RectHeight);
+			glVertex2f(RectWidth , RectHeight);
+			glVertex2f(RectWidth, -RectHeight);
+		glEnd();
 		
+	glColor4f(0.0f,0.0f,0.0f,0.8f);	
+	RenderText(0 , RectHeight , SelectedPtr->name);
+	//RenderText(0 , RectHeight , SelectedPtr->name);
+	//RenderText(0 , RectHeight , SelectedPtr->name);
+	
 	glPopMatrix();
 			
 	glDisable(GL_BLEND);
@@ -834,9 +848,7 @@ void CDLL::RenderMarkers()
 		glEnd();
 				
 		glPopMatrix();
-		
-		
-		RenderText(vPoints[i]->x , vPoints[i]->y + RectWidth , vPoints[i]->name);
+				
 	}
 	
 	glDisable(GL_BLEND);

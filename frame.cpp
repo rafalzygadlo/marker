@@ -24,7 +24,7 @@ extern CNaviBroker *BrokerPtr;
 //FRAME
 
 CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
-	:wxDialog(ParentPtr,wxID_ANY, GetMsg(MSG_MARKER), wxDefaultPosition, wxDefaultSize, wxCAPTION )
+	:wxDialog(ParentPtr,wxID_ANY, GetMsg(MSG_MARKER), wxDefaultPosition, wxDefaultSize)
 {
 	m_DLL = (CDLL*)Parent;
 	_ParentPtr = ParentPtr;

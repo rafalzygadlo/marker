@@ -29,7 +29,7 @@
 #define RECT_WIDTH 32
 #define RECT_HEIGHT 32
 
-#define INFO_WIDTH 32
+#define INFO_WIDTH 128
 #define INFO_HEIGHT 32
 #define INFO_MARGIN 2
 

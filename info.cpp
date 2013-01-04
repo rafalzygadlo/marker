@@ -6,9 +6,8 @@
 
 //END_EVENT_TABLE()
 
-
 CMyInfo::CMyInfo(CDLL *Parent)
-:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize )
+:wxDialog( NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize )
 {
 	m_DLL = Parent;
 
@@ -16,25 +15,25 @@ CMyInfo::CMyInfo(CDLL *Parent)
 	wxBoxSizer *TopSizer = new wxBoxSizer(wxVERTICAL);
 	
 	CMyButton *ButtonDelete = new CMyButton(this,GetMsg(MSG_DELETE_MARKER));
-	TopSizer->Add(ButtonDelete,0,wxALL|wxEXPAND,2);
+	TopSizer->Add(ButtonDelete,0,wxALL|wxEXPAND,5);
 		
-	wxHyperlinkCtrl *ButtonProperties = new wxHyperlinkCtrl(this,wxID_CANCEL,GetMsg(MSG_PROPERTIES_MARKER),wxEmptyString);
-	TopSizer->Add(ButtonProperties,0,wxALL,2);
+	CMyButton *ButtonProperties = new CMyButton(this,GetMsg(MSG_DELETE_MARKER));
+	TopSizer->Add(ButtonProperties,0,wxALL,5);
 	
-	wxHyperlinkCtrl *ButtonClose = new wxHyperlinkCtrl(this,wxID_CANCEL,GetMsg(MSG_CLOSE),wxEmptyString);
-	TopSizer->Add(ButtonClose,0,wxALL,2);
+	CMyButton *ButtonClose = new CMyButton(this,GetMsg(MSG_CLOSE));
+	TopSizer->Add(ButtonClose,0,wxALL,5);
 
-	wxStaticText *labellon = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(labellon,0,wxALL,5);
+	//wxStaticText *labellon = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
+	//TopSizer->Add(labellon,0,wxALL,5);
 
-	textlon = new wxStaticText(this,wxID_ANY,wxEmptyString, wxDefaultPosition, wxDefaultSize);
-	TopSizer->Add(textlon,0,wxALL,5);
+	//textlon = new wxStaticText(this,wxID_ANY,wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	//TopSizer->Add(textlon,0,wxALL,5);
 	
-	wxStaticText *labellat = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(labellat,0,wxALL,5);
+	//wxStaticText *labellat = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
+	//TopSizer->Add(labellat,0,wxALL,5);
 	
-	textlat = new wxStaticText(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize);
-	TopSizer->Add(textlat,0,wxALL,5);
+	//textlat = new wxStaticText(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	//TopSizer->Add(textlat,0,wxALL,5);
 
 	this->SetSizer(TopSizer);
 
@@ -88,8 +87,8 @@ void CMyInfo::ShowWindow(bool show)
 	this->SetPosition(pt);
 
 	m_DLL->GetBroker()->Project(MarkerSelectedPtr->x,MarkerSelectedPtr->y,&to_x,&to_y);
-	textlon->SetLabel(FormatLongitude(to_x));
-	textlat->SetLabel(FormatLongitude(-to_y));
+	//textlon->SetLabel(FormatLongitude(to_x));
+	//textlat->SetLabel(FormatLongitude(-to_y));
 	
 }
 
@@ -100,16 +99,16 @@ BEGIN_EVENT_TABLE(CMyButton,wxWindow)
 END_EVENT_TABLE()
 
 CMyButton::CMyButton(wxWindow *Parent,wxString text)
-:wxPanel(Parent,12, wxDefaultPosition, wxDefaultSize )
+:wxPanel( Parent,wxID_ANY, wxDefaultPosition, wxDefaultSize )
 {
-	wxBoxSizer *Sizer = new wxBoxSizer(wxHORIZONTAL);
-	//wxHyperlinkCtrl *Button = new wxHyperlinkCtrl(this,wxID_CANCEL,text,wxEmptyString);
-	wxStaticText *Button = new wxStaticText(this,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
-	Sizer->Add(Button,0,wxALL,10);
+	wxBoxSizer *Sizer = new wxBoxSizer(wxVERTICAL);
+	wxHyperlinkCtrl *Button = new wxHyperlinkCtrl(this,wxID_CANCEL,text,wxEmptyString);
+	Sizer->Add(Button,0,wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL,15);
 	
+	//this->SetSize(100,50);
+	SetBackgroundColour(wxColor(200,200,200));
 	this->SetSizer(Sizer);
-	this->SetSize(100,50);
-	SetBackgroundColour(wxColor(255,255,255));
+
 }
 
 CMyButton::~CMyButton()
@@ -120,10 +119,9 @@ CMyButton::~CMyButton()
 void CMyButton::OnMouse(wxMouseEvent &event)
 {
 	
-	/*
 	if(event.LeftDown())
 	{
-		
+	/*	
 		if(event.GetId() ==  ID_ICON)
 		{
 			showicons_panel = !showicons_panel;
@@ -133,12 +131,13 @@ void CMyButton::OnMouse(wxMouseEvent &event)
 	
 		if((event.GetId() >= ID_ICONSET) && (event.GetId() < ID_ICONSET + icon_counter))
 			m_Frame->SetMarkerIcon(event.GetId() - ID_ICONSET);
-		
+	*/	
 	}
+	
 	event.Skip();
-	*/
 	
 }
+
 void CMyButton::OnWindowLeave(wxMouseEvent &event)
 {
 	SetBackgroundColour(wxColor(200,200,200));
