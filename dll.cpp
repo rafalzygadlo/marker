@@ -72,18 +72,20 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	this->AddExecuteFunction("marker_MarkerNew", MarkerNew);
 	this->AddExecuteFunction("marker_MarkerGet",MarkerGet);
 	this->AddExecuteFunction("marker_MarkerCount",MarkerCount);
-	Font = new CNaviPixmapFont(FONT_NAME,FONT_SIZE);
+	
 	MyFrame = NULL;
 	MyInfo = NULL;
-		
+//	Font = NULL;	
 	CreateApiMenu();
+	
 
 }
 
 CDLL::~CDLL()
 {
 	delete FileConfig;
-	delete Font;
+//	if(Font != NULL)
+	//	delete Font;
 	delete MarkerIcons;
 	delete MyInfo;
 	delete MyFrame;
@@ -219,7 +221,7 @@ void CDLL::SetButtonAction(int action)
 
 void CDLL::Run(void *Params)
 {
-	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF );
+	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF );
 //	ThisPtr = (CNaviMapIOApi*)this;
 
 }
@@ -269,10 +271,7 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	MapY = _y;
 	// . . . . . . . . . . . . . . . . . . . . 	
 	Broker->Refresh(Broker->GetParentPtr());
-	
-	if(rmb)
-		vDistance.clear();
-
+		
 	bool add = false;
 	
 	if(SetMarker(MapX,MapY))
@@ -283,16 +282,16 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 
 	if(add)
 	{
-		ShowFrameWindow(true);
+		//ShowFrameWindow(true);
 		vDistance.clear();
 		vDistance.push_back(SelectedPtr);
 		OldSelectedPtr = SelectedPtr;
 	
 	}else{
 	
+		vDistance.clear();
 		SelectedPtr = NULL;
 		OldSelectedPtr = NULL;
-		ShowFrameWindow(false);
 		ShowFrameWindow(false);
 
 	}
@@ -340,7 +339,10 @@ void CDLL::ShowFrameWindow(bool show)
 
 void CDLL::MouseDBLClick(int x, int y)
 {
-	SetMarker(MapX,MapY);
+	if(SetMarker(MapX,MapY))
+		ShowFrameWindow(true);
+	else
+		ShowFrameWindow(false);
 }
 
 void CDLL::ShowProperties()
@@ -434,9 +436,6 @@ void CDLL::Menu(int type)
 	GetBroker()->Refresh(GetBroker()->GetParentPtr());
 
 }
-
-
-
 
 void CDLL::CreateSymbol(void *MemoryBlock,long MemoryBlockSize)
 {
@@ -586,6 +585,7 @@ void CDLL::Delete()
 		{
 			vPoints.erase(it);
 			SelectedPtr = NULL;
+			vDistance.clear();
 			return;
 		}
 		
@@ -658,6 +658,8 @@ void CDLL::SetValues()
 	HotSpotY = (RECT_HEIGHT/2)/SmoothScaleFactor;
 	InfoMargin = INFO_MARGIN/SmoothScaleFactor;
 
+	Broker->GetVisibleMap(VisibleMap);
+
 	
 }
 /*
@@ -689,51 +691,63 @@ void CDLL::RenderPoints()
 void CDLL::RenderDistance()
 {
 	
-	//glLineWidth(2);
-	glColor3f(1.0f,0.0f,0.0f);
+	glLineWidth(2);
+	
 	size_t counter = 1;				
 	
-	glBegin(GL_LINE_STRIP);
-	
-	for(size_t i = 0; i < vDistance.size(); i++)
-		glVertex2f(vDistance[i]->x,vDistance[i]->y);			
-		
-	if(SelectedPtr != NULL)
-		glVertex2f(MapX,MapY);
-	glEnd();
-	
-	if(vDistance.size() > 1)
+	if(vDistance.size() > 0)
 	{
-		for(size_t i = 0; i < vDistance.size() - 1; i++)
+		glBegin(GL_LINES);
+			if(SelectedPtr == NULL)	
+			{
+				glColor4f(1.0f,0.0f,0.0f,0.8f);
+				glVertex2f(vDistance[0]->x,vDistance[0]->y);			
+				glVertex2f(MapX,MapY);
+			
+			}else{
+			
+				glColor4f(0.0f,0.0f,1.0f,0.8f);
+				glVertex2f(vDistance[0]->x,vDistance[0]->y);			
+				glVertex2f(SelectedPtr->x,SelectedPtr->y);
+			}
+		glEnd();
+	
+		wchar_t val[10];
+		double _x1,_x2,_y1,_y2;
+		double x1,x2,y1,y2;
+		
+		if(SelectedPtr == NULL)	
 		{
-			char val[8];
-			double _x1,_x2,_y1,_y2;
-			double x1,x2,y1,y2;
+			x1 = vDistance[0]->x;
+			x2 = MapX;
+			y1 = vDistance[0]->y;
+			y2 = MapY;
 		
-			x1 = vDistance[i]->x;
-			x2 = vDistance[i+1]->x;
-
-			y1 = vDistance[i]->y;
-			y2 = vDistance[i+1]->y;
-
-			Broker->Project(x1,y1,&_x1,&_y1);
-			Broker->Project(x2,y2,&_x2,&_y2);
-			//double dst = nvDistance(_x1,_y1,_x2,_y2,nvDefault);
-			sprintf(val,"%4.2f",nvDistance(_x1,_y1,_x2,_y2,nvNauticMiles));
-			
-			double v1,v2;
-			nvMidPoint(x1,y1,x2,y2,&v1,&v2);
-
-			glPushMatrix();
-			
-			glTranslatef(v1 ,v2 ,0.0f);
-			//glRotatef(0.0f,vDistance[i]->y,0.0f,1.0f);
-			RenderText(0.0,0.0,val);
-			glPopMatrix();
-			
+		}else{
 		
+			x1 = vDistance[0]->x;
+			x2 = SelectedPtr->x;
+			y1 = vDistance[0]->y;
+			y2 = SelectedPtr->y;
 		}
+		
+		Broker->Project(x1,y1,&_x1,&_y1);
+		Broker->Project(x2,y2,&_x2,&_y2);
+		swprintf(val,L"%4.4f",nvDistance(_x1,_y1,_x2,_y2,nvNauticMiles));
+			
+		double v1,v2;
+		nvMidPoint(x1,y1,x2,y2,&v1,&v2);
+
+		glPushMatrix();
+			
+		glTranslatef(v1 ,v2 ,0.0f);
+		glScalef(0.5/MapScale,0.5/MapScale,0.0);
+		Broker->Print(Broker->GetParentPtr(),0.0,0.0,val);
+		glPopMatrix();
+			
+		
 	}
+	
 	//char val[8];
 	//double _x1,_x2,_y1,_y2;
 	//Broker->Project(SelectedPtr_1->x,SelectedPtr_1->y,&_x1,&_y1);
@@ -744,7 +758,7 @@ void CDLL::RenderDistance()
 	
 	//}		
 		
-	//glLineWidth(1);
+	glLineWidth(1);
 
 }
 
@@ -755,7 +769,7 @@ void CDLL::RenderHotSpot()
 
 void CDLL::	RenderSelection()
 {
-	return;
+	
 	glEnable(GL_BLEND);
 	
 	double x,y;
@@ -778,16 +792,19 @@ void CDLL::	RenderSelection()
 	glPushMatrix();
 	
 	glColor4f(1.0f,1.0f,1.0f,0.5f);	
-	glTranslatef(x , y  ,0.0f);
+	glTranslatef(x, y ,0.0f);
+		
 		glBegin(GL_QUADS);
-			glVertex2f(-RectWidth, -RectHeight);
-			glVertex2f(-RectWidth , RectHeight);
-			glVertex2f(RectWidth , RectHeight);
-			glVertex2f(RectWidth, -RectHeight);
+			glVertex2f(-RectWidth/2, -RectHeight/2);
+			glVertex2f(-RectWidth/2 , RectHeight/2);
+			glVertex2f(RectWidth/2 , RectHeight/2);
+			glVertex2f(RectWidth/2, -RectHeight/2);
 		glEnd();
 		
-	glColor4f(0.0f,0.0f,0.0f,0.8f);	
-	RenderText(0 , RectHeight , SelectedPtr->name);
+	glColor4f(0.0f,0.0f,0.0f,0.8f);
+	glScalef(0.5/MapScale,0.5/MapScale,0.0);
+	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,SelectedPtr->name);
+	
 	//RenderText(0 , RectHeight , SelectedPtr->name);
 	//RenderText(0 , RectHeight , SelectedPtr->name);
 	
@@ -799,26 +816,26 @@ void CDLL::	RenderSelection()
 
 float CDLL::RenderText(double x, double y, wchar_t *text)
 {
-	if(MapScale < Factor)
-		return 0;
+	//if(MapScale < Factor)
+		//return 0;
 
 	float width, height;
-	width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
-	height = (Font->GetHeight()/2)/SmoothScaleFactor;
-	Font->Render(x - width , y - height , text);
+	//width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
+	//height = (Font->GetHeight()/2)/SmoothScaleFactor;
+	//Font->Render(x - width , y - height , text);
 	
 	return height;
 }
 
 float CDLL::RenderText(double x, double y, char *text)
 {
-	if(MapScale < Factor)
-		return 0;
+	//if(MapScale < Factor)
+		//return 0;
 	float width, height;
-	width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
-	height = (Font->GetHeight()/2)/SmoothScaleFactor;
+	//width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
+	//height = (Font->GetHeight()/2)/SmoothScaleFactor;
 		
-	Font->Render(x - width , y - height , text);
+	//Font->Render(x - width , y - height , text);
 
 	return height;
 }
@@ -874,8 +891,9 @@ void CDLL::Render(void)
 	
 	
 	RenderDistance();
+
 	RenderMarkers();
-	
+		
 	if(SelectedPtr != NULL)
 		RenderSelection();
 

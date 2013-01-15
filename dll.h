@@ -67,8 +67,9 @@ class CDLL :public CNaviMapIOApi
 	TTexture *TextureMarkerTGA_0, *TextureMarkerTGA_1, *TextureMarkerTGA_2, *TextureMarkerTGA_3, *TextureMarkerTGA_4, *TextureMarkerTGA_5;
 	GLuint MarkerTextureID_0, MarkerTextureID_1, MarkerTextureID_2, MarkerTextureID_3, MarkerTextureID_4, MarkerTextureID_5;
 	bool DBLClick;
-	CNaviPixmapFont *Font;
+	//CNaviPixmapFont *Font;
 	double MarkerX,MarkerY;
+	double VisibleMap[4];
 
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateApiMenu(void);

@@ -46,7 +46,7 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-	#define FONT_NAME "c:\\windows\\fonts\\Arial.ttf"
+	#define FONT_NAME "arial.ttf"
 #endif
 
 #define PLUGIN_ID 4
@@ -74,6 +74,7 @@
 #define MSG_ICON				11
 #define MSG_CLOSE				12
 #define MSG_CHANGE_ICON			13
+#define MSG_FONT_NOT_EXISTS		14
 //. . . . . . . . . . . . . . . . .
 
 #define NV_PI 3.1415926535897932384626433

@@ -5,7 +5,7 @@
 #define CONVERTED_DEGREE_LENGTH	15
 
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][14] = 
+const wxChar *nvLanguage[2][15] = 
 { 
 	/*EN*/
 	{
@@ -22,7 +22,8 @@ const wxChar *nvLanguage[2][14] =
 	/*10*/	_("Latitude"),
 	/*11*/	_("Icon"),
 	/*12*/	_("Close"),
-	/*13*/	_("Change Icon")
+	/*13*/	_("Change Icon"),
+			_("Font %s not found in program folder.\nCopy font file to the program folder and start plugin again."),
 	},
 	/*PL*/
 	{
@@ -98,7 +99,8 @@ wxString FormatLatitude(float y)
 
 }
 
-double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistanceUnits distanceunit) {
+double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistanceUnits distanceunit) 
+{
 
 	double dLat = nvToRad( lat2 - lat1 );
 	double dLon = nvToRad( lon2 - lon1 );
@@ -107,13 +109,12 @@ double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistance
 	double a = ( sin(dLat/2) * sin(dLat/2) )  +  ( cos( nvToRad(lat1) ) * cos( nvToRad(lat2) ) * sin(dLon/2) * sin(dLon/2) );
 	double c = 2 * atan2( sqrt(a), sqrt( 1 - a ) );
 
-	switch( distanceunit ) {
-
-	case nvKilometer: return R * c;
-	case nvNauticMiles: return (R *c) / 1.852;
-	default:
-		return c;
-
+	switch( distanceunit ) 
+	{
+		case nvKilometer: return R * c;
+		case nvNauticMiles: return (R *c) / 1.852;
+		default:
+			return c;
 	}
 }
 
@@ -126,4 +127,10 @@ void nvMidPoint(double lon1, double lat1,double lon2, double lat2, double *v1, d
 double nvToRad( double degree ) 
 {
 	return (NV_PI * degree / 180 );
+}
+
+void nvPointOfIntersection(double a1, double b1,double a2, double b2, double *x, double *y)
+{
+	*x = (b1 - b2)/(a2 - a1);
+	*y = (a2 * b1 - b2 * a1) / (a2 - a1); 
 }
