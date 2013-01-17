@@ -36,7 +36,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	// Page1
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
 		
-	GridSizer = new wxFlexGridSizer(2,0,0);
+	GridSizer = new wxFlexGridSizer(2,0,0);	
 	PanelSizer->Add(GridSizer,1,wxALL|wxEXPAND,5);
 	
 	// marker name
@@ -358,9 +358,9 @@ void CMyIcon::OnMouse(wxMouseEvent &event)
 			m_Frame->SetMarkerIcon(event.GetId() - ID_ICONSET);
 		
 	}
-	event.Skip();
-	
+		
 }
+
 void CMyIcon::OnWindowLeave(wxMouseEvent &event)
 {
 	SetBackgroundColour(wxColor(200,200,200));

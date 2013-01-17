@@ -5,7 +5,7 @@
 #include <wx/zipstrm.h>
 #include <wx/wfstream.h>
 #include "icons.h"
-#include "info.h"
+#include "unitconfig.h"
 
 #define BUFSIZE 512
 
@@ -66,7 +66,7 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	
 	MarkerIcons = new CMarkerIcons();
 	
-	SelectedPtr = OldSelectedPtr = NULL;
+	SelectedPtr = HighlightedPtr = NULL;
 	DBLClick = false;
 
 	this->AddExecuteFunction("marker_MarkerNew", MarkerNew);
@@ -74,20 +74,15 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	this->AddExecuteFunction("marker_MarkerCount",MarkerCount);
 	
 	MyFrame = NULL;
-	MyInfo = NULL;
-//	Font = NULL;	
+	FromLMB = false;
 	CreateApiMenu();
-	
 
 }
 
 CDLL::~CDLL()
 {
 	delete FileConfig;
-//	if(Font != NULL)
-	//	delete Font;
 	delete MarkerIcons;
-	delete MyInfo;
 	delete MyFrame;
 
 }
@@ -144,15 +139,13 @@ wxString CDLL::GetWorkDir(void)
 void CDLL::ReadConfig()
 {
 	
-	FileConfig->Read(_(KEY_FILEPATH), &FilePath);
-	
+	FileConfig->Read(_(KEY_DISTANCE_UNIT), &DistanceUnit,nvNauticMiles);
+		
 	if(_file.Exists(PointsPath))
 	{
-		
 		if(_file.Open(PointsPath))
 		{	
 			ReadHeader();
-			
 			while(!_file.Eof())
 			{	
 				SMarker *buffer = (SMarker*)malloc(sizeof(SMarker));
@@ -177,7 +170,7 @@ void CDLL::ReadHeader()
 
 void CDLL::WriteConfig()
 {
-	FileConfig->Write(_(KEY_FILEPATH), FilePath);
+	FileConfig->Write(_(KEY_DISTANCE_UNIT), DistanceUnit);
 	
 	if(_file.Open(PointsPath,wxFile::write))
 	{
@@ -250,7 +243,12 @@ wxArrayString *CDLL::GetDataArray()
 
 void CDLL::Config()
 {
+	CUnitConfig *Config = new CUnitConfig();
+	Config->SetUnit(DistanceUnit);
+	if(Config->ShowModal() == wxID_OK)
+		DistanceUnit = Config->GetUnit();
 
+	delete Config;
 }
 
 void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
@@ -273,25 +271,33 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	Broker->Refresh(Broker->GetParentPtr());
 		
 	bool add = false;
+	SMarker *ptr = NULL;
 	
-	if(SetMarker(MapX,MapY))
+	if(ptr = SetMarker(MapX,MapY))
+	{
 		add = true;
+		((wxWindow*)Broker->GetParentPtr())->SetCursor(wxCURSOR_HAND);
+		HighlightedPtr = ptr;
+	
+	}else{
+		HighlightedPtr = NULL;
+	}
 	
 	if(!lmb)
 		return;
 
 	if(add)
 	{
-		//ShowFrameWindow(true);
+		FromLMB = true;
+		SelectedPtr = ptr;
 		vDistance.clear();
 		vDistance.push_back(SelectedPtr);
-		OldSelectedPtr = SelectedPtr;
 	
 	}else{
 	
+		FromLMB = false;
 		vDistance.clear();
 		SelectedPtr = NULL;
-		OldSelectedPtr = NULL;
 		ShowFrameWindow(false);
 
 	}
@@ -299,7 +305,7 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	
 }
 
-bool CDLL::SetMarker(double x, double y)
+SMarker *CDLL::SetMarker(double x, double y)
 {
 	std::vector<SMarker*>::iterator it;
 	it = vPoints.begin();
@@ -308,23 +314,19 @@ bool CDLL::SetMarker(double x, double y)
 	while(it != vPoints.end())
 	{
 		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
-		{
-			SelectedPtr =  *it;
-			((wxWindow*)Broker->GetParentPtr())->SetCursor(wxCURSOR_HAND);
-			return true;
-		}
-		
+			return *it;
+				
 		it++;
 	}
-	SelectedPtr = NULL;
-	return false;
+	
+	return NULL;
 }
 
 void CDLL::ShowPopupMenu(bool show)
 {
-	if(MyInfo == NULL)
-		MyInfo = new CMyInfo(this);
-	MyInfo->ShowWindow(show);
+//	if(MyInfo == NULL)
+//		MyInfo = new CMyInfo(this);
+//	MyInfo->ShowWindow(show);
 	
 	//delete MyInfo;
 	//MyInfo->ShowPopupMenu();
@@ -356,8 +358,9 @@ void CDLL::CreateApiMenu(void)
 	NaviApiMenu = new CNaviApiMenu( GetMsg(MSG_MARKERS).wchar_str());	// nie u¿uwaæ delete - klasa zwalnia obiekt automatycznie
 	NaviApiMenu->AddItem( GetMsg(MSG_NEW_MARKER).wchar_str(),this, MenuNew, true );
 	NaviApiMenu->AddItem( GetMsg(MSG_DELETE_MARKER).wchar_str(),this, MenuDelete, true );
-	//NaviApiMenu->AddItem( GetMsg(MSG_MOVE_MARKER).wchar_str(),this, MenuMove, true );
+	NaviApiMenu->AddItem( GetMsg(MSG_MOVE_MARKER).wchar_str(),this, MenuMove, true );
 	NaviApiMenu->AddItem( GetMsg(MSG_PROPERTIES_MARKER).wchar_str(),this, MenuProperties, true );
+	NaviApiMenu->AddItem( GetMsg(MSG_SETTINGS_MARKER).wchar_str(),this, MenuConfig, true );
 	
 }
 
@@ -698,7 +701,7 @@ void CDLL::RenderDistance()
 	if(vDistance.size() > 0)
 	{
 		glBegin(GL_LINES);
-			if(SelectedPtr == NULL)	
+			if(HighlightedPtr == NULL)	
 			{
 				glColor4f(1.0f,0.0f,0.0f,0.8f);
 				glVertex2f(vDistance[0]->x,vDistance[0]->y);			
@@ -708,15 +711,15 @@ void CDLL::RenderDistance()
 			
 				glColor4f(0.0f,0.0f,1.0f,0.8f);
 				glVertex2f(vDistance[0]->x,vDistance[0]->y);			
-				glVertex2f(SelectedPtr->x,SelectedPtr->y);
+				glVertex2f(HighlightedPtr->x,HighlightedPtr->y);
 			}
 		glEnd();
 	
-		wchar_t val[10];
+		wchar_t val[32];
 		double _x1,_x2,_y1,_y2;
 		double x1,x2,y1,y2;
 		
-		if(SelectedPtr == NULL)	
+		if(HighlightedPtr == NULL)	
 		{
 			x1 = vDistance[0]->x;
 			x2 = MapX;
@@ -726,14 +729,14 @@ void CDLL::RenderDistance()
 		}else{
 		
 			x1 = vDistance[0]->x;
-			x2 = SelectedPtr->x;
+			x2 = HighlightedPtr->x;
 			y1 = vDistance[0]->y;
-			y2 = SelectedPtr->y;
+			y2 = HighlightedPtr->y;
 		}
 		
 		Broker->Project(x1,y1,&_x1,&_y1);
 		Broker->Project(x2,y2,&_x2,&_y2);
-		swprintf(val,L"%4.4f",nvDistance(_x1,_y1,_x2,_y2,nvNauticMiles));
+		swprintf(val,L"%4.4f %s",nvDistance(_x1,_y1,_x2,_y2,DistanceUnit),GetDistanceUnit(DistanceUnit));
 			
 		double v1,v2;
 		nvMidPoint(x1,y1,x2,y2,&v1,&v2);
@@ -741,7 +744,7 @@ void CDLL::RenderDistance()
 		glPushMatrix();
 			
 		glTranslatef(v1 ,v2 ,0.0f);
-		glScalef(0.5/MapScale,0.5/MapScale,0.0);
+		glScalef(0.6/MapScale,0.6/MapScale,0.0);
 		Broker->Print(Broker->GetParentPtr(),0.0,0.0,val);
 		glPopMatrix();
 			
@@ -767,7 +770,7 @@ void CDLL::RenderHotSpot()
 	
 }
 
-void CDLL::	RenderSelection()
+void CDLL::	RenderSelected()
 {
 	
 	glEnable(GL_BLEND);
@@ -775,19 +778,6 @@ void CDLL::	RenderSelection()
 	double x,y;
 	x = SelectedPtr->x; 
 	y = SelectedPtr->y;
-	/*	
-	glColor4f(1.0f,1.0f,1.0f,0.2f);	
-	glPushMatrix();
-	glTranslatef(x + InfoWidth/2, y  ,0.0f);
-		glBegin(GL_QUADS);
-			glVertex2f(-InfoWidth, -InfoHeight);
-			glVertex2f(-InfoWidth , InfoHeight);
-			glVertex2f(InfoWidth , InfoHeight);
-			glVertex2f(InfoWidth, -InfoHeight);
-		glEnd();
-	
-	glPopMatrix();	
-	*/
 	
 	glPushMatrix();
 	
@@ -804,15 +794,45 @@ void CDLL::	RenderSelection()
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
 	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,SelectedPtr->name);
-	
-	//RenderText(0 , RectHeight , SelectedPtr->name);
-	//RenderText(0 , RectHeight , SelectedPtr->name);
-	
+		
 	glPopMatrix();
 			
 	glDisable(GL_BLEND);
 	
 }
+
+void CDLL::	RenderHighlighted()
+{
+	
+	glEnable(GL_BLEND);
+	
+	double x,y;
+	x = HighlightedPtr->x; 
+	y = HighlightedPtr->y;
+	
+	glPushMatrix();
+	
+	glColor4f(1.0f,0.0f,0.0f,0.5f);	
+	glTranslatef(x, y ,0.0f);
+		
+		glBegin(GL_QUADS);
+			glVertex2f(-RectWidth/2, -RectHeight/2);
+			glVertex2f(-RectWidth/2 , RectHeight/2);
+			glVertex2f(RectWidth/2 , RectHeight/2);
+			glVertex2f(RectWidth/2, -RectHeight/2);
+		glEnd();
+		
+	glColor4f(0.0f,0.0f,0.0f,0.8f);
+	glScalef(0.5/MapScale,0.5/MapScale,0.0);
+	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,HighlightedPtr->name);
+		
+	glPopMatrix();
+			
+	glDisable(GL_BLEND);
+	
+}
+
+
 
 float CDLL::RenderText(double x, double y, wchar_t *text)
 {
@@ -895,8 +915,10 @@ void CDLL::Render(void)
 	RenderMarkers();
 		
 	if(SelectedPtr != NULL)
-		RenderSelection();
+		RenderSelected();
 
+	if(HighlightedPtr != NULL)
+		RenderHighlighted();
 }
 
 bool CDLL::GetClickedOnButton()

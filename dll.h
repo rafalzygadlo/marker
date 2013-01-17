@@ -18,14 +18,12 @@
 class CDataThread;
 class CMarkerIcons;
 class CMyFrame;
-class CMyInfo;
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 //DLL
 class CDLL :public CNaviMapIOApi
 {	
 	CMyFrame *MyFrame;
 	bool ShowWindow;
-	CMyInfo *MyInfo;
 	double HotSpotX;
 	double HotSpotY;
 	int SelectedTextureID;
@@ -37,7 +35,7 @@ class CDLL :public CNaviMapIOApi
 	double Factor;
 	bool MoveMarker;
 	double MOM_X, MOM_Y;
-	SMarker *SelectedPtr, *OldSelectedPtr;
+	SMarker *SelectedPtr, *HighlightedPtr;
 	int ErrorCode;
 	double SmoothScaleFactor;
 	bool NeedExit;
@@ -70,6 +68,8 @@ class CDLL :public CNaviMapIOApi
 	//CNaviPixmapFont *Font;
 	double MarkerX,MarkerY;
 	double VisibleMap[4];
+	bool FromLMB;
+	int DistanceUnit;
 
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateApiMenu(void);
@@ -93,7 +93,8 @@ class CDLL :public CNaviMapIOApi
 	void RenderIcons();
 	void RenderPoints();
 	void RenderMarkers();
-	void RenderSelection();
+	void RenderSelected();
+	void RenderHighlighted();
 	void RenderHotSpot();
 	void RenderMouseSelection();
 	void RenderButton(float x1, float y1, float x2, float y2, bool selected);
@@ -115,7 +116,7 @@ class CDLL :public CNaviMapIOApi
 	int Count();
 	SMarker *Get(int id);
 	double Distance();
-	bool SetMarker(double x, double y);
+	SMarker* SetMarker(double x, double y);
 	
 	
 	static void *MenuConfig(void *NaviMapIOApiPtr, void *Input);
@@ -123,6 +124,7 @@ class CDLL :public CNaviMapIOApi
 	static void *MenuDelete(void *NaviMapIOApiPtr, void *Input);
 	static void *MenuProperties(void *NaviMapIOApiPtr, void *Input);
 	static void *MenuMove(void *NaviMapIOApiPtr, void *Input);
+	static void *MenuSettings(void *NaviMapIOApiPtr, void *Input);
 				
 public:
 	

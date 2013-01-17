@@ -13,10 +13,10 @@
 #define DIR_WORKDIR "workdir"
 #define MARKER_CONFIG_FILE "marker.conf"
 #define MARKER_DATA_FILE "marker.data"
-#define MARKER_ICONSET_FILE_NAME "marker.icons"
+//#define MARKER_ICONSET_FILE_NAME "marker.icons"
 
-#define PRODUCT_NAME "Markers"
-#define PRODUCT_VERSION "0.1"
+#define PRODUCT_NAME "Markers Plugin"
+#define PRODUCT_VERSION "1.0"
 #define PRODUCT_COPYRIGHT "Copyright© 2010/2011 by NavSim. All rights reserved"
 
 
@@ -36,8 +36,8 @@
 #define DEFAULT_FACTOR 50.0
 #define FONT_SIZE 14
 
+#define KEY_DISTANCE_UNIT "DistanceUnit"
 
-#define KEY_FILEPATH "FileName"
 #define PARSER_SEPARATOR ","
 
 
@@ -74,11 +74,17 @@
 #define MSG_ICON				11
 #define MSG_CLOSE				12
 #define MSG_CHANGE_ICON			13
-#define MSG_FONT_NOT_EXISTS		14
+#define MSG_SETTINGS_MARKER		14
+#define MSG_DISTANCE_UNITS		15
+#define MSG_OK					16
+#define MSG_CANCEL				17
 //. . . . . . . . . . . . . . . . .
 
 #define NV_PI 3.1415926535897932384626433
-enum nvDistanceUnits { nvDefault, nvKilometer, nvNauticMiles, nvMeter };
+enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 };
+
+
+
 
 typedef struct
 {

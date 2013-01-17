@@ -5,46 +5,105 @@
 #define CONVERTED_DEGREE_LENGTH	15
 
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][15] = 
+const wxChar *nvLanguage[2][19] = 
 { 
-	/*EN*/
+	//en
 	{
-	/*0*/	_("Marker"),
-	/*1*/	_("Markers"),
-	/*2*/	_("Marker New"),
-	/*3*/	_("Marker Delete"),
-	/*4*/	_("Move Marker Here"),
-	/*5*/	_("Marker Properties"),
-	/*6*/	_("Select marker first"), 
-	/*7*/   _("Name"),
-	/*8*/	_("Description"),
-	/*9*/	_("Longitude"),
-	/*10*/	_("Latitude"),
-	/*11*/	_("Icon"),
-	/*12*/	_("Close"),
-	/*13*/	_("Change Icon"),
-			_("Font %s not found in program folder.\nCopy font file to the program folder and start plugin again."),
+		_("Marker"),
+		_("Markers"),
+		_("Marker NEW"),
+		_("Marker DELETE"),
+		_("Marker MOVE Here"),
+		_("Marker PROPERTIES"),
+		_("Select marker first"), 
+		_("Name"),
+		_("Description"),
+		_("Longitude"),
+		_("Latitude"),
+		_("Icon"),
+		_("Close"),
+		_("Change Icon"),
+		_("Marker SETTINGS"),
+		_("Distance unit"),
+		_("Ok"),
+		_("Cancel")
 	},
-	/*PL*/
+	//pl
 	{
-	/*0*/	_("Marker"),
-	/*1*/	_("Markery"),
-	/*2*/	_("Dodaj Marker"),
-	/*3*/	_("Usuñ Marker"),
-	/*4*/	_("Przesuñ Marker tutaj"),
-	/*5*/	_("Ustawienia Markera"),
-	/*6*/	_("Zaznacz najpierw marker"),
-	/*7*/   _("Nazwa"),
-	/*8*/	_("Opis"),
-	/*9*/	_("Longitude"),
-	/*10*/	_("Latitude"),
-	/*11*/	_("Ikona"),
-	/*12*/	_("Zamknij"),
-	/*13*/	_("Zmieñ ikonê")
+		_("Marker"),
+		_("Markery"),
+		_("Dodaj Marker"),
+		_("Usuñ Marker"),
+		_("Przesuñ Marker tutaj"),
+		_("Ustawienia Markera"),
+		_("Zaznacz najpierw marker"),
+	    _("Nazwa"),
+		_("Opis"),
+		_("Longitude"),
+		_("Latitude"),
+		_("Ikona"),
+		_("Zamknij"),
+		_("Zmieñ ikonê")
 	}
 
 };
 
+const wxChar *nvDistanceN[2][3] = 
+{ 
+	//en
+	{
+		_("Nautic Miles"),
+		_("Kilometer"),
+		_("Meter"),
+	},
+
+	//pl
+	{
+		_("Mile morskie"),
+		_("Kilometry"),
+		_("Metry"),
+	}
+
+};
+
+
+const wxChar *nvDistanceU[2][3] = 
+{ 
+	//en
+	{
+		_("NM"),
+		_("km"),
+		_("m"),
+	},
+
+	//pl
+	{
+		_("NM"),
+		_("km"),
+		_("m"),
+	}
+
+};
+
+wxString GetProductInfo()
+{
+	return wxString::Format(_("%s %s\n%s"),_(PRODUCT_NAME),_(PRODUCT_VERSION),_(PRODUCT_COPYRIGHT));
+}
+wxString GetProductName()
+{
+	return wxString::Format(_("%s %s"),_(PRODUCT_NAME),_(PRODUCT_VERSION));
+}
+
+
+wxString GetDistanceName(size_t id)
+{
+	return nvDistanceN[GlobalLanguageID][id];
+}
+
+wxString GetDistanceUnit(size_t id)
+{
+	return nvDistanceU[GlobalLanguageID][id];
+}
 
 wxString GetMsg(int id)
 {
@@ -99,7 +158,7 @@ wxString FormatLatitude(float y)
 
 }
 
-double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistanceUnits distanceunit) 
+double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit) 
 {
 
 	double dLat = nvToRad( lat2 - lat1 );
@@ -113,8 +172,9 @@ double nvDistance(double lon1, double lat1, double lon2, double lat2, nvDistance
 	{
 		case nvKilometer: return R * c;
 		case nvNauticMiles: return (R *c) / 1.852;
+		case nvMeter : return R * c * 1000;
 		default:
-			return c;
+			return (R *c) / 1.852;
 	}
 }
 
