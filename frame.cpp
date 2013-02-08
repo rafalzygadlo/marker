@@ -16,6 +16,8 @@ BEGIN_EVENT_TABLE(CMyFrame,wxDialog)
 	EVT_BUTTON(ID_DELETE,CMyFrame::OnMarkerDelete)
 	EVT_BUTTON(ID_NEW_FIELD,CMyFrame::OnNewField)
 	EVT_COMMAND_LEFT_CLICK(ID_ICON,CMyFrame::OnLeftClick)
+	EVT_TEXT(ID_LON,CMyFrame::OnLon)
+	EVT_TEXT(ID_LAT,CMyFrame::OnLat)
 END_EVENT_TABLE()
 
 extern CNaviMapIOApi *ThisPtr;
@@ -53,19 +55,21 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	textdescription = new wxTextCtrl(Panel,ID_DESCRIPTION,wxEmptyString,wxDefaultPosition,wxSize(250,100),wxTE_MULTILINE);
 	GridSizer->Add(textdescription,0,wxALL|wxEXPAND,5);
 	
-
-	wxStaticText *labellon = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
-	GridSizer->Add(labellon,0,wxALL,5);
-
-	textlon = new wxStaticText(Panel,wxID_ANY,wxEmptyString, wxDefaultPosition, wxDefaultSize);
-	GridSizer->Add(textlon,0,wxALL,5);
 	
 	wxStaticText *labellat = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
 	GridSizer->Add(labellat,0,wxALL,5);
 	
-	textlat = new wxStaticText(Panel,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	textlat = new wxTextCtrl(Panel,ID_LAT,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	
 	GridSizer->Add(textlat,0,wxALL,5);
 	
+	wxStaticText *labellon = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
+	GridSizer->Add(labellon,0,wxALL,5);
+
+	textlon = new wxTextCtrl(Panel,ID_LON,wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	GridSizer->Add(textlon,0,wxALL,5);
+	
+
 	wxStaticText *labelicon = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_ICON),wxDefaultPosition,wxDefaultSize);
 	GridSizer->Add(labelicon,0,wxALL,5);
 	
@@ -150,20 +154,104 @@ CMyFrame::~CMyFrame(void)
 
 }
 
+void CMyFrame::OnLon(wxCommandEvent &event)
+{
+	int degree,min,sec;
+	char dindicator;
+
+	char buffer[64];
+	sprintf(buffer,"%s",textlon->GetValue().char_str());
+
+	int a = sscanf(buffer,"%d° %d' %d'' %c",&degree,&min,&sec,&dindicator);
+	bool result = true;	
+	
+	if(dindicator != 'W' && dindicator != 'E')
+		result = false;
+		
+	if(degree > 180 || degree < 0)
+		result = false;
+	if(min > 60 || min < 0)
+		result = false;
+	if(sec > 60 || sec < 0)
+		result = false;
+
+	double x,y,to_x,to_y;
+	float _min = 0;
+	if(result)
+	{
+		x = MarkerSelectedPtr->x;
+		min = min + (float)(sec/60);
+		y = degree + ((float)_min/60);
+		
+		m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
+
+		MarkerSelectedPtr->x = to_x;
+		MarkerSelectedPtr->y = to_y;
+		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
+
+		textlon->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+		textlon->Refresh();
+	
+	}else{
+	
+		textlon->SetForegroundColour(*wxRED);
+		textlon->Refresh();
+	}
+
+}
+
+void CMyFrame::OnLat(wxCommandEvent &event)
+{
+	int degree,min,sec;
+	char dindicator;
+
+	char buffer[64];
+	sprintf(buffer,"%s",textlat->GetValue().char_str());
+
+	sscanf(buffer,"%d° %d' %d'' %c",&degree,&min,&sec,&dindicator);
+	bool result = true;	
+	if(dindicator != 'S' && dindicator != 'N')
+		result = false;
+		
+	if(degree > 180 || degree < 0)
+		result = false;
+	if(min > 60 || min < 0)
+		result = false;
+	if(sec > 60 || sec < 0)
+		result = false;
+	
+	double x,y,to_x,to_y;
+	//double _min;
+
+	if(result)
+	{
+		textlat->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
+		textlat->Refresh();
+		
+		x = MarkerSelectedPtr->x;
+		min = min + ((float)sec/60);
+		y = degree + ((float)min/60);
+		//y = y *-1;
+		m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
+
+		MarkerSelectedPtr->x = to_x;
+		MarkerSelectedPtr->y = to_y;
+		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
+	
+	}else{
+	
+		textlat->SetForegroundColour(*wxRED);
+		textlat->Refresh();
+	}
+
+}
+
 void CMyFrame::ShowIconChanger(bool show)
 {
 	PanelIcon->Show(show);
 	if(GetSizer())
 		GetSizer()->SetSizeHints(this);
 
-}
-
-void CMyFrame::OnPaint(wxPaintEvent &event)
-{
-
-	wxPaintDC dc;
-	dc.DrawRoundedRectangle(0,0,GetSize().GetWidth(),GetSize().GetHeight(),10);
-	//event.Skip();
 }
 
 void CMyFrame::OnTextChanged(wxCommandEvent &event)

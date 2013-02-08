@@ -6,6 +6,7 @@
 #include <wx/wfstream.h>
 #include "icons.h"
 #include "unitconfig.h"
+#include "positionconfig.h"
 
 #define BUFSIZE 512
 
@@ -547,13 +548,12 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 
 void CDLL::New(double x, double y)
 {
-	
+		
 	wchar_t text[255];
 	wsprintf(text,L"%s%d",GetMsg(MSG_MARKER).wc_str(),vPoints.size());
 	Add(x,y,0,text,NULL);
 
 }
-
 
 
 void CDLL::AddField(wchar_t *name, wchar_t *value, SMarker *Marker )
@@ -694,6 +694,7 @@ void CDLL::RenderPoints()
 void CDLL::RenderDistance()
 {
 	
+	glEnable(GL_BLEND);
 	glLineWidth(2);
 	
 	size_t counter = 1;				
@@ -762,6 +763,7 @@ void CDLL::RenderDistance()
 	//}		
 		
 	glLineWidth(1);
+	glDisable(GL_BLEND);
 
 }
 
@@ -823,7 +825,7 @@ void CDLL::	RenderHighlighted()
 		
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
-	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,HighlightedPtr->name);
+	glTranslatef(RECT_WIDTH ,0.0f,0.0f);
 	double to_x, to_y;
 	Broker->Project(HighlightedPtr->x,HighlightedPtr->y,&to_x,&to_y);
 	
