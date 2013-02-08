@@ -794,7 +794,6 @@ void CDLL::	RenderSelected()
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
 	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,SelectedPtr->name);
-		
 	glPopMatrix();
 			
 	glDisable(GL_BLEND);
@@ -825,7 +824,11 @@ void CDLL::	RenderHighlighted()
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
 	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,HighlightedPtr->name);
-		
+	double to_x, to_y;
+	Broker->Project(HighlightedPtr->x,HighlightedPtr->y,&to_x,&to_y);
+	
+	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH ,30,FormatLongitude(to_x).wchar_str());
+	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH ,60,FormatLatitude(-to_y).wchar_str());	
 	glPopMatrix();
 			
 	glDisable(GL_BLEND);
