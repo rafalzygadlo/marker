@@ -119,7 +119,7 @@ wxString ConvertDegree(float degree)
 	int decimal = (int)degree;
     float minutes = (float)(degree - decimal) * 60;
     float second = (float)(minutes - (int)(minutes)) * 60;
-	return wxString::Format(_("%02d° %02d'%02d"),decimal, (int)minutes, (int)second);
+	return wxString::Format(_("%02d° %02d' %02d''"),decimal, (int)minutes, (int)second);
       
 }
 

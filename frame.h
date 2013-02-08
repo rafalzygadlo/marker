@@ -26,8 +26,8 @@ class CMyFrame: public wxDialog
 	wxButton *ButtonClose;
 	wxPanel *PanelIcon;
 	CMyIcon *MarkerIcon;
-	wxStaticText *textlon;
-	wxStaticText *textlat;
+	wxTextCtrl *textlon;
+	wxTextCtrl *textlat;
 	int ParentX, ParentY;
 	wxWindow *_ParentPtr;
 
@@ -45,6 +45,9 @@ class CMyFrame: public wxDialog
 	void OnTextChanged(wxCommandEvent &event);
 	void OnLeftClick(wxCommandEvent &event);
 	void OnPaint(wxPaintEvent &event);
+	void OnLon(wxCommandEvent &event);
+	void OnLat(wxCommandEvent &event);
+
 					
 public:
 
@@ -90,7 +93,8 @@ enum
 		ID_ICON,
 		ID_CHANGE_ICON,
 		ID_ICONSET,
-		
+		ID_LON,
+		ID_LAT,
 	};
 
 #endif
