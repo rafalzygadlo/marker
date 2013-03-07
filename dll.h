@@ -10,6 +10,7 @@
 #include "NaviFont.h"
 #include "NaviDisplayApi.h"
 #include "conf.h"
+#include "positionconfig.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -22,13 +23,14 @@ class CMyFrame;
 //DLL
 class CDLL :public CNaviMapIOApi
 {	
+	CPositionConfig *PositionConfig;
 	CMyFrame *MyFrame;
 	bool ShowWindow;
 	double HotSpotX;
 	double HotSpotY;
 	int SelectedTextureID;
 	int SelectedIconID;
-	SMarker *LastAdedMarker;
+	SMarker *NewPtr;
 	CMarkerIcons *MarkerIcons;
 	wxFile _file;
 	float Angle;
@@ -87,7 +89,7 @@ class CDLL :public CNaviMapIOApi
 	int GetType();
 	void SetMOM(double x, double y);
 	bool GetClickedOnButton();
-	void Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type);
+	void Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type = 0, bool _new = false);
 	
 	void New(double x, double y);	
 	void RenderIcons();
@@ -98,8 +100,7 @@ class CDLL :public CNaviMapIOApi
 	void RenderHotSpot();
 	void RenderMouseSelection();
 	void RenderButton(float x1, float y1, float x2, float y2, bool selected);
-	float RenderText(double x, double y, wchar_t *text);
-	float RenderText(double x, double y, char *text);
+	void RenderText(double x, double y, wchar_t *text);
 	bool IsPointInsideBox(double px, double py, double bx1, double by1, double bx2, double by2); 
 	void RenderMenu(float x , float y);
 	void RenderPositionMarker(double x, double y);
@@ -117,7 +118,8 @@ class CDLL :public CNaviMapIOApi
 	SMarker *Get(int id);
 	double Distance();
 	SMarker* SetMarker(double x, double y);
-	
+	void SetPosition();
+	void RenderNew();
 	
 	static void *MenuConfig(void *NaviMapIOApiPtr, void *Input);
 	static void *MenuNew(void *NaviMapIOApiPtr, void *Input);

@@ -4,7 +4,6 @@
 #include "conf.h"
 
 BEGIN_EVENT_TABLE(CPositionConfig,wxDialog)
-	EVT_RADIOBUTTON(wxID_ANY,CPositionConfig::OnRadio)
 END_EVENT_TABLE()
 
 CPositionConfig::CPositionConfig()
@@ -18,13 +17,24 @@ CPositionConfig::CPositionConfig()
 	Panel->SetBackgroundColour(wxColor(255,255,255));
 	Panel->SetSizer(PanelSizer);
 	
-	wxBoxSizer *HSizer = new wxBoxSizer(wxHORIZONTAL);
-	PanelSizer->Add(HSizer,0,wxALL,5);
 	
-	wxSpinCtrl *Spin1 = new wxSpinCtrl(Panel,wxID_ANY,_("text"));
-	HSizer->Add(Spin1,0,wxALL,5);
-	Spin1->SetMin(0);
-	Spin1->SetMax(180);
+	wxFont font;
+	font.SetPointSize(14);
+	wxStaticText *info = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_POSITION_INFO),wxDefaultPosition,wxDefaultSize);
+	info->SetFont(font);
+	PanelSizer->Add(info,0,wxALL,5);
+	
+	wxStaticText *labellat = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
+	PanelSizer->Add(labellat,0,wxALL,5);
+	textlat = new wxTextCtrl(Panel,ID_LAT,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_READONLY);
+	
+	PanelSizer->Add(textlat,0,wxALL,5);
+	
+	wxStaticText *labellon = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LONGITUDE) ,wxDefaultPosition,wxDefaultSize);
+	PanelSizer->Add(labellon,0,wxALL,5);
+
+	textlon = new wxTextCtrl(Panel,ID_LON,wxEmptyString, wxDefaultPosition, wxDefaultSize,wxTE_READONLY);
+	PanelSizer->Add(textlon,0,wxALL,5);
 	
 
 	MainSizer->Add(Panel,1,wxALL|wxEXPAND,0);
@@ -53,19 +63,9 @@ CPositionConfig::~CPositionConfig()
 	Radios.Clear();
 }
 
-void CPositionConfig::OnRadio(wxCommandEvent &event)
+void CPositionConfig::SetPosition(double lon, double lat)
 {
-	Unit = event.GetId() - ID_RADIO;
+	textlon->SetValue(FormatLongitude(lon));
+	textlat->SetValue(FormatLatitude(lat));
 }
 
-size_t CPositionConfig::GetUnit()
-{
-	return Unit;
-}
-
-void CPositionConfig::SetUnit(size_t val)
-{
-	
-	
-	
-}

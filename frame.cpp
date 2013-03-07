@@ -54,8 +54,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	GridSizer->Add(labeldescription,0,wxALL,5);
 	textdescription = new wxTextCtrl(Panel,ID_DESCRIPTION,wxEmptyString,wxDefaultPosition,wxSize(250,100),wxTE_MULTILINE);
 	GridSizer->Add(textdescription,0,wxALL|wxEXPAND,5);
-	
-	
+		
 	wxStaticText *labellat = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
 	GridSizer->Add(labellat,0,wxALL,5);
 	
@@ -176,18 +175,20 @@ void CMyFrame::OnLon(wxCommandEvent &event)
 		result = false;
 
 	double x,y,to_x,to_y;
-	float _min = 0;
+	double _min = 0;
+	
 	if(result)
 	{
-		x = MarkerSelectedPtr->x;
-		min = min + (float)(sec/60);
-		y = degree + ((float)_min/60);
+		//x = MarkerSelectedPtr->x;
+		//_min = min + (double)(sec/60);
+		//y = degree + ((double)_min/60);
+		//y = y *-1;
 		
-		m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
+		//m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
 
-		MarkerSelectedPtr->x = to_x;
-		MarkerSelectedPtr->y = to_y;
-		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
+		//MarkerSelectedPtr->x = to_x;
+		//MarkerSelectedPtr->y = to_y;
+		//m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 
 		textlon->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 		textlon->Refresh();
@@ -221,22 +222,22 @@ void CMyFrame::OnLat(wxCommandEvent &event)
 		result = false;
 	
 	double x,y,to_x,to_y;
-	//double _min;
+	double _min;
 
 	if(result)
 	{
+		
+		//x = MarkerSelectedPtr->y;
+		//_min = min + (double)(sec/60);
+		//y = degree + ((double)_min/60);
+		//y = y *-1;
+		//m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
+
+		//MarkerSelectedPtr->x = to_x;
+		//MarkerSelectedPtr->y = to_y;
+		//m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 		textlat->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 		textlat->Refresh();
-		
-		x = MarkerSelectedPtr->x;
-		min = min + ((float)sec/60);
-		y = degree + ((float)min/60);
-		//y = y *-1;
-		m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
-
-		MarkerSelectedPtr->x = to_x;
-		MarkerSelectedPtr->y = to_y;
-		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 	
 	}else{
 	

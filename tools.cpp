@@ -26,7 +26,8 @@ const wxChar *nvLanguage[2][19] =
 		_("Marker SETTINGS"),
 		_("Distance unit"),
 		_("Ok"),
-		_("Cancel")
+		_("Cancel"),
+		_("Click on Chart to put your marker")
 	},
 	//pl
 	{
@@ -113,12 +114,12 @@ void SetLangId(int id)
 {
 	GlobalLanguageID = id;
 }
-
-wxString ConvertDegree(float degree) 
+//degree = 40.044658660888672
+wxString ConvertDegree(double degree) 
 {
 	int decimal = (int)degree;
-    float minutes = (float)(degree - decimal) * 60;
-    float second = (float)(minutes - (int)(minutes)) * 60;
+    double minutes = (double)(degree - decimal) * 60;
+    double second = (double)(minutes - (int)(minutes)) * 60;
 	return wxString::Format(_("%02d° %02d' %02d''"),decimal, (int)minutes, (int)second);
       
 }

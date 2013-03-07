@@ -78,6 +78,7 @@
 #define MSG_DISTANCE_UNITS		15
 #define MSG_OK					16
 #define MSG_CANCEL				17
+#define MSG_POSITION_INFO		18
 //. . . . . . . . . . . . . . . . .
 
 #define NV_PI 3.1415926535897932384626433
@@ -103,8 +104,8 @@ typedef struct Fields
 
 typedef struct Marker
 {
-	float x;
-	float y;
+	double x;
+	double y;
 	wchar_t name[MARKER_NAME_SIZE + 1];
 	wchar_t description[MARKER_DESCRIPTION_SIZE + 1];
 	int icon_id;
