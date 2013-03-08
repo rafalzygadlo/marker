@@ -36,7 +36,8 @@ unsigned char PluginInfoBlock[] = {
 
 CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 {
-		
+	NewPtr = NULL;
+	PositionConfig = NULL;	
 	Broker = NaviBroker;
 	ConfigPath = wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(MARKER_CONFIG_FILE));
 	FileConfig = new wxFileConfig(_("marker"),wxEmptyString,ConfigPath,wxEmptyString);
@@ -85,6 +86,9 @@ CDLL::~CDLL()
 	delete FileConfig;
 	delete MarkerIcons;
 	delete MyFrame;
+
+	if(PositionConfig != NULL)
+		delete PositionConfig;
 
 }
 
@@ -153,6 +157,7 @@ void CDLL::ReadConfig()
 				memset(buffer,0,sizeof(SMarker));
 				_file.Read(buffer,sizeof(SMarker));
 				Add(buffer->x,buffer->y,buffer->icon_id, buffer->name,buffer->description,buffer->type);
+				NewPtr = NULL;
 				free(buffer);
 			}
 		
@@ -287,6 +292,10 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	if(!lmb)
 		return;
 
+	//  LMB Begins Here
+
+	SetPosition();
+	
 	if(add)
 	{
 		FromLMB = true;
@@ -518,13 +527,24 @@ void *CDLL::MarkerNew(void *NaviMapIOApiPtr, void *Params)
 {
 	SMarker *pt = (SMarker*)Params;
 	CDLL *ThisPtr = (CDLL*)NaviMapIOApiPtr;
-	ThisPtr->Add(pt->x,pt->y,pt->icon_id,pt->name,pt->description,pt->type);
+	ThisPtr->Add(pt->x,pt->y,pt->icon_id,pt->name,pt->description,pt->type,true);
 		
 	return NULL;
 }
 
+//void CDLL::New()
+//{
+//}
+void CDLL::Append()
+{
+	SMarker *Marker = (SMarker*)malloc(sizeof(SMarker));
+	memcpy(Marker,NewPtr,sizeof(SMarker));
+	vPoints.push_back(Marker);
+	free(NewPtr);
+	NewPtr = NULL;
+}
 
-void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type = 0)
+void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type, bool _new)
 {
 	SMarker *Points = (SMarker*)malloc(sizeof(SMarker));
 	memset(Points,0,sizeof(SMarker));
@@ -541,17 +561,44 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 	if(description != NULL)
 		wcscpy_s(Points->description,MARKER_DESCRIPTION_SIZE,description);
 	
-	//LastAdedMarker = &Points;	
-	vPoints.push_back(Points);
+	NewPtr = Points;	
+	
+	if(!_new)
+		vPoints.push_back(Points);
 }
 
+void CDLL::SetPosition()
+{
+	double mom[2];
+	
+	if(PositionConfig == NULL)
+		PositionConfig = new CPositionConfig(this);
+	
+	Broker->GetMouseOM(mom);
+	if(NewPtr != NULL)
+	{
+		NewPtr->x = MapX;
+		NewPtr->y = MapY;
+	}
+	
+	PositionConfig->SetPosition(mom[0],mom[1]);
+
+}
+SMarker *CDLL::GetNewMarkerPtr()
+{
+	return NewPtr;
+}
 
 void CDLL::New(double x, double y)
 {
 		
 	wchar_t text[255];
 	wsprintf(text,L"%s%d",GetMsg(MSG_MARKER).wc_str(),vPoints.size());
-	Add(x,y,0,text,NULL);
+	
+	Add(x,y,0,text,NULL,0,true);
+	SetPosition();
+	PositionConfig->Show();
+
 
 }
 
@@ -694,27 +741,30 @@ void CDLL::RenderPoints()
 void CDLL::RenderDistance()
 {
 	
-	glEnable(GL_BLEND);
 	glLineWidth(2);
 	
 	size_t counter = 1;				
 	
 	if(vDistance.size() > 0)
 	{
-		glBegin(GL_LINES);
+		
 			if(HighlightedPtr == NULL)	
 			{
-				glColor4f(1.0f,0.0f,0.0f,0.8f);
-				glVertex2f(vDistance[0]->x,vDistance[0]->y);			
-				glVertex2f(MapX,MapY);
+				glBegin(GL_LINES);
+					glColor4f(1.0f,0.0f,0.0f,0.8f);
+					glVertex2f(vDistance[0]->x,vDistance[0]->y);			
+					glVertex2f(MapX,MapY);
+				glEnd();
 			
 			}else{
-			
-				glColor4f(0.0f,0.0f,1.0f,0.8f);
-				glVertex2f(vDistance[0]->x,vDistance[0]->y);			
-				glVertex2f(HighlightedPtr->x,HighlightedPtr->y);
+				
+				glBegin(GL_LINES);
+					glColor4f(0.0f,0.0f,1.0f,0.8f);
+					glVertex2f(vDistance[0]->x,vDistance[0]->y);			
+					glVertex2f(HighlightedPtr->x,HighlightedPtr->y);
+				glEnd();
 			}
-		glEnd();
+		
 	
 		wchar_t val[32];
 		double _x1,_x2,_y1,_y2;
@@ -746,24 +796,13 @@ void CDLL::RenderDistance()
 			
 		glTranslatef(v1 ,v2 ,0.0f);
 		glScalef(0.6/MapScale,0.6/MapScale,0.0);
-		Broker->Print(Broker->GetParentPtr(),0.0,0.0,val);
+		RenderText(0.0,0.0,val);
 		glPopMatrix();
 			
 		
 	}
-	
-	//char val[8];
-	//double _x1,_x2,_y1,_y2;
-	//Broker->Project(SelectedPtr_1->x,SelectedPtr_1->y,&_x1,&_y1);
-	//Broker->Project(SelectedPtr_2->x,SelectedPtr_2->y,&_x2,&_y2);
-	//sprintf(val,"%4.2f",nvDistance(_x1,_y1,_x2,_y2,nvKilometer));
-		
-	//RenderText(MapX,MapY,val);
-	
-	//}		
 		
 	glLineWidth(1);
-	glDisable(GL_BLEND);
 
 }
 
@@ -774,9 +813,6 @@ void CDLL::RenderHotSpot()
 
 void CDLL::	RenderSelected()
 {
-	
-	glEnable(GL_BLEND);
-	
 	double x,y;
 	x = SelectedPtr->x; 
 	y = SelectedPtr->y;
@@ -795,18 +831,15 @@ void CDLL::	RenderSelected()
 		
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
-	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH,0,SelectedPtr->name);
+	RenderText(RECT_WIDTH,0,SelectedPtr->name);
 	glPopMatrix();
-			
-	glDisable(GL_BLEND);
-	
+		
 }
 
 void CDLL::	RenderHighlighted()
 {
 	
-	glEnable(GL_BLEND);
-	
+		
 	double x,y;
 	x = HighlightedPtr->x; 
 	y = HighlightedPtr->y;
@@ -826,51 +859,47 @@ void CDLL::	RenderHighlighted()
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
 	glTranslatef(RECT_WIDTH ,0.0f,0.0f);
-	double to_x, to_y;
-	Broker->Project(HighlightedPtr->x,HighlightedPtr->y,&to_x,&to_y);
-	
-	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH ,30,FormatLongitude(to_x).wchar_str());
-	Broker->Print(Broker->GetParentPtr(),RECT_WIDTH ,60,FormatLatitude(-to_y).wchar_str());	
+	RenderText(0,0,HighlightedPtr->name);
 	glPopMatrix();
 			
-	glDisable(GL_BLEND);
+	
 	
 }
 
 
-
-float CDLL::RenderText(double x, double y, wchar_t *text)
+void CDLL::RenderText(double x, double y, wchar_t *text)
 {
-	//if(MapScale < Factor)
-		//return 0;
-
-	float width, height;
-	//width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
-	//height = (Font->GetHeight()/2)/SmoothScaleFactor;
-	//Font->Render(x - width , y - height , text);
 	
-	return height;
+	glEnable(GL_TEXTURE_2D);
+	Broker->Print(Broker->GetParentPtr(),x,y,text);
+	glDisable(GL_TEXTURE_2D);
+	
 }
 
-float CDLL::RenderText(double x, double y, char *text)
+void CDLL::RenderNew()
 {
-	//if(MapScale < Factor)
-		//return 0;
-	float width, height;
-	//width = (Font->GetWidth(text)/2)/SmoothScaleFactor;
-	//height = (Font->GetHeight()/2)/SmoothScaleFactor;
+	glEnable(GL_TEXTURE_2D);	
+	
+	glColor3f(1.0f,1.0f,1.0f);
+	glPushMatrix();
 		
-	//Font->Render(x - width , y - height , text);
+	glTranslatef(NewPtr->x,NewPtr->y,0.0f);
+	glBindTexture( GL_TEXTURE_2D, NewPtr->texture_id );
 
-	return height;
+	glBegin(GL_QUADS);
+		glTexCoord2f(1.0f,1.0f); glVertex2f( TranslationX,  -TranslationY);	
+		glTexCoord2f(1.0f,0.0f); glVertex2f( TranslationX,  TranslationY);
+		glTexCoord2f(0.0f,0.0f); glVertex2f(  -TranslationX,   TranslationY);
+		glTexCoord2f(0.0f,1.0f); glVertex2f(  -TranslationX ,  -TranslationY);
+	glEnd();
+				
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
 }
-
 
 void CDLL::RenderMarkers()
 {
-	
-	glEnable(GL_BLEND);	
-	glEnable(GL_TEXTURE_2D);		
+	glEnable(GL_TEXTURE_2D);	
 	
 	for(unsigned int i = 0; i < vPoints.size(); i++)
 	{
@@ -893,15 +922,14 @@ void CDLL::RenderMarkers()
 				
 	}
 	
-	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
-	
-	
-	
+		
 }
 
 void CDLL::Render(void)
 {
+	glEnable(GL_BLEND);
+	
 	
 	MapScale = Broker->GetMapScale();
 	Angle = GetBroker()->GetAngle();
@@ -916,14 +944,19 @@ void CDLL::Render(void)
 	
 	
 	RenderDistance();
-
 	RenderMarkers();
 		
 	if(SelectedPtr != NULL)
 		RenderSelected();
 
+	if(NewPtr != NULL)
+		RenderNew();
+
 	if(HighlightedPtr != NULL)
 		RenderHighlighted();
+
+	glDisable(GL_BLEND);
+	
 }
 
 bool CDLL::GetClickedOnButton()

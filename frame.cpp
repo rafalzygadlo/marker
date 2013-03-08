@@ -54,8 +54,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	GridSizer->Add(labeldescription,0,wxALL,5);
 	textdescription = new wxTextCtrl(Panel,ID_DESCRIPTION,wxEmptyString,wxDefaultPosition,wxSize(250,100),wxTE_MULTILINE);
 	GridSizer->Add(textdescription,0,wxALL|wxEXPAND,5);
-	
-	
+		
 	wxStaticText *labellat = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_LATITUDE),wxDefaultPosition,wxDefaultSize);
 	GridSizer->Add(labellat,0,wxALL,5);
 	
@@ -156,94 +155,49 @@ CMyFrame::~CMyFrame(void)
 
 void CMyFrame::OnLon(wxCommandEvent &event)
 {
-	int degree,min,sec;
-	char dindicator;
-
-	char buffer[64];
-	sprintf(buffer,"%s",textlon->GetValue().char_str());
-
-	int a = sscanf(buffer,"%d° %d' %d'' %c",&degree,&min,&sec,&dindicator);
-	bool result = true;	
-	
-	if(dindicator != 'W' && dindicator != 'E')
-		result = false;
+	float value = MarkerSelectedPtr->x;
 		
-	if(degree > 180 || degree < 0)
-		result = false;
-	if(min > 60 || min < 0)
-		result = false;
-	if(sec > 60 || sec < 0)
-		result = false;
-
-	double x,y,to_x,to_y;
-	float _min = 0;
-	if(result)
+	if(SetLon(textlon->GetValue().char_str(),&value))
 	{
-		x = MarkerSelectedPtr->x;
-		min = min + (float)(sec/60);
-		y = degree + ((float)_min/60);
-		
-		m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
-
-		MarkerSelectedPtr->x = to_x;
-		MarkerSelectedPtr->y = to_y;
+		double y,to_x,to_y;
+		m_DLL->GetBroker()->Unproject(value,y,&to_x,&to_y);
+		MarkerSelectedPtr->x = (float)to_x;
+					
 		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
-
 		textlon->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 		textlon->Refresh();
-	
+
 	}else{
-	
+		
 		textlon->SetForegroundColour(*wxRED);
 		textlon->Refresh();
+	
 	}
+
 
 }
 
 void CMyFrame::OnLat(wxCommandEvent &event)
 {
-	int degree,min,sec;
-	char dindicator;
-
-	char buffer[64];
-	sprintf(buffer,"%s",textlat->GetValue().char_str());
-
-	sscanf(buffer,"%d° %d' %d'' %c",&degree,&min,&sec,&dindicator);
-	bool result = true;	
-	if(dindicator != 'S' && dindicator != 'N')
-		result = false;
+	float value = MarkerSelectedPtr->y;
 		
-	if(degree > 180 || degree < 0)
-		result = false;
-	if(min > 60 || min < 0)
-		result = false;
-	if(sec > 60 || sec < 0)
-		result = false;
-	
-	double x,y,to_x,to_y;
-	//double _min;
-
-	if(result)
+	if(SetLat(textlat->GetValue().char_str(),&value))
 	{
+		double x,to_x,to_y;
+		x = MarkerSelectedPtr->x;
+		m_DLL->GetBroker()->Unproject(x,value,&to_x,&to_y);
+		MarkerSelectedPtr->y = (float)to_y;
+					
+		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 		textlat->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 		textlat->Refresh();
-		
-		x = MarkerSelectedPtr->x;
-		min = min + ((float)sec/60);
-		y = degree + ((float)min/60);
-		//y = y *-1;
-		m_DLL->GetBroker()->Unproject(x,y,&to_x,&to_y);
 
-		MarkerSelectedPtr->x = to_x;
-		MarkerSelectedPtr->y = to_y;
-		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
-	
 	}else{
-	
+		
 		textlat->SetForegroundColour(*wxRED);
 		textlat->Refresh();
 	}
-
+		
 }
 
 void CMyFrame::ShowIconChanger(bool show)

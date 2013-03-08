@@ -78,6 +78,7 @@
 #define MSG_DISTANCE_UNITS		15
 #define MSG_OK					16
 #define MSG_CANCEL				17
+#define MSG_POSITION_INFO		18
 //. . . . . . . . . . . . . . . . .
 
 #define NV_PI 3.1415926535897932384626433
