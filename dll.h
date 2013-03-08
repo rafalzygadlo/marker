@@ -21,6 +21,7 @@ class CMarkerIcons;
 class CMyFrame;
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 //DLL
+class CPositionConfig;
 class CDLL :public CNaviMapIOApi
 {	
 	CPositionConfig *PositionConfig;
@@ -151,6 +152,8 @@ public:
 	void SetMarkerIconID(int id);
 	void ShowPopupMenu(bool show);
 	void ShowFrameWindow(bool show);
+	SMarker *GetNewMarkerPtr();
+	void Append();
 	
 	virtual void Run(void *Params); 
 	virtual void Kill(void);

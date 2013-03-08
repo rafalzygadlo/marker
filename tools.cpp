@@ -27,7 +27,7 @@ const wxChar *nvLanguage[2][19] =
 		_("Distance unit"),
 		_("Ok"),
 		_("Cancel"),
-		_("Click on Chart to put your marker")
+		_("Click on Chart to put your marker.\nWhen done click Ok to save or Cancel to remove marker.")
 	},
 	//pl
 	{
@@ -115,12 +115,12 @@ void SetLangId(int id)
 	GlobalLanguageID = id;
 }
 //degree = 40.044658660888672
-wxString ConvertDegree(double degree) 
+wxString ConvertDegree(float degree) 
 {
 	int decimal = (int)degree;
-    double minutes = (double)(degree - decimal) * 60;
-    double second = (double)(minutes - (int)(minutes)) * 60;
-	return wxString::Format(_("%02d° %02d' %02d''"),decimal, (int)minutes, (int)second);
+    double minutes = (float)(degree - decimal) * 60;
+    double second = (float)(minutes - (int)(minutes)) * 60;
+	return wxString::Format(_("%02d° %02d' %02.2f''"),decimal, (int)minutes, second);
       
 }
 
@@ -194,4 +194,89 @@ void nvPointOfIntersection(double a1, double b1,double a2, double b2, double *x,
 {
 	*x = (b1 - b2)/(a2 - a1);
 	*y = (a2 * b1 - b2 * a1) / (a2 - a1); 
+}
+
+bool SetLat(char *text, float *val)
+{
+	int degree,min;
+	float sec;
+	char dindicator;
+
+	char buffer[64];
+	sprintf(buffer,"%s",text);
+	
+	sscanf(buffer,"%d° %d' %f'' %c",&degree,&min,&sec,&dindicator);
+	bool result = true;	
+	if(dindicator != 'S' && dindicator != 'N')
+		result = false;
+		
+	if(degree > 180 || degree < 0)
+		result = false;
+	if(min >= 60 || min < 0)
+		result = false;
+	if(sec >= 60 || sec < 0)
+		result = false;
+	
+	double y;
+	double _min;
+
+	if(result)
+	{
+		_min = min + ((float)sec/60);
+		y = degree + ((float)_min/60);
+				
+		if(dindicator == 'N')
+			*val = -y;
+		else
+			*val = y;
+	
+	}else{
+			
+		return false;
+	}
+
+	return true;
+}
+
+bool SetLon(char *text, float *val)
+{
+	int degree,min;
+	float sec;
+	char dindicator;
+
+	char buffer[64];
+	sprintf(buffer,"%s",text);
+
+	sscanf(buffer,"%d° %d' %f'' %c",&degree,&min,&sec,&dindicator);
+	bool result = true;	
+	
+	if(dindicator != 'W' && dindicator != 'E')
+		result = false;
+		
+	if(degree > 180 || degree < 0)
+		result = false;
+	if(min >= 60 || min < 0)
+		result = false;
+	if(sec >= 60 || sec < 0)
+		result = false;
+
+	double x;
+	double _min;
+	
+	if(result)
+	{
+		_min = min + ((float)sec/60);
+		x = degree + ((float)_min/60);
+				
+		if(dindicator == 'W')
+			*val = -x;
+		else
+			*val = x;
+	
+	}else{
+	
+		return false;
+	}
+
+	return true;
 }

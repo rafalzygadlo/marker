@@ -104,8 +104,8 @@ typedef struct Fields
 
 typedef struct Marker
 {
-	double x;
-	double y;
+	float x;
+	float y;
 	wchar_t name[MARKER_NAME_SIZE + 1];
 	wchar_t description[MARKER_DESCRIPTION_SIZE + 1];
 	int icon_id;

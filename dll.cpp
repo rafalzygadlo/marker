@@ -36,6 +36,7 @@ unsigned char PluginInfoBlock[] = {
 
 CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 {
+	NewPtr = NULL;
 	PositionConfig = NULL;	
 	Broker = NaviBroker;
 	ConfigPath = wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(MARKER_CONFIG_FILE));
@@ -534,6 +535,14 @@ void *CDLL::MarkerNew(void *NaviMapIOApiPtr, void *Params)
 //void CDLL::New()
 //{
 //}
+void CDLL::Append()
+{
+	SMarker *Marker = (SMarker*)malloc(sizeof(SMarker));
+	memcpy(Marker,NewPtr,sizeof(SMarker));
+	vPoints.push_back(Marker);
+	free(NewPtr);
+	NewPtr = NULL;
+}
 
 void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type, bool _new)
 {
@@ -563,7 +572,7 @@ void CDLL::SetPosition()
 	double mom[2];
 	
 	if(PositionConfig == NULL)
-		PositionConfig = new CPositionConfig();
+		PositionConfig = new CPositionConfig(this);
 	
 	Broker->GetMouseOM(mom);
 	if(NewPtr != NULL)
@@ -573,8 +582,11 @@ void CDLL::SetPosition()
 	}
 	
 	PositionConfig->SetPosition(mom[0],mom[1]);
-	
 
+}
+SMarker *CDLL::GetNewMarkerPtr()
+{
+	return NewPtr;
 }
 
 void CDLL::New(double x, double y)

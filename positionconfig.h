@@ -4,19 +4,23 @@
 #include <wx/wx.h>
 #include <vector>
 #include <wx/spinctrl.h>
+#include "dll.h"
 
+class CDLL;
 class CPositionConfig: public wxDialog
 {
-	
+	CDLL *_Parent;
 	size_t Unit;
 	wxArrayPtrVoid Radios;
 	wxTextCtrl *textlon;
 	wxTextCtrl *textlat;
-	void OnRadio(wxCommandEvent &event);
+	void OnLon(wxCommandEvent &event);
+	void OnLat(wxCommandEvent &event);
+	void OnOk(wxCommandEvent &event);
 						
 public:
 
-	CPositionConfig();
+	CPositionConfig(CDLL *Parent);
 	~CPositionConfig();
 	void SetPosition(double lon, double lat);
 		
@@ -26,8 +30,8 @@ public:
 		ID_CLOSE = 1234,
 		ID_RADIO,
 		ID_LON,
-		ID_LAT
-		
+		ID_LAT,
+		ID_OK
 		
 	};
 	

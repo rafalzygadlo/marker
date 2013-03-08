@@ -5,7 +5,7 @@
 
 wxString GetMsg(int id);
 void SetLangId(int id);
-wxString ConvertDegree(double degree);
+wxString ConvertDegree(float degree);
 wxString FormatLongitude(float x); 
 wxString FormatLatitude(float y);
 double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit);
@@ -16,5 +16,7 @@ wxString GetDistanceUnit(size_t id);
 wxString GetDistanceName(size_t id);
 wxString GetProductInfo();
 wxString GetProductName();
+bool SetLat(char *text, float *val);
+bool SetLon(char *text, float *val);
 #endif
 
