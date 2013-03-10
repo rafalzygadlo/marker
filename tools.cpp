@@ -210,7 +210,7 @@ bool SetLat(char *text, float *val)
 	if(dindicator != 'S' && dindicator != 'N')
 		result = false;
 		
-	if(degree > 180 || degree < 0)
+	if(degree > 90 || degree < 0)
 		result = false;
 	if(min >= 60 || min < 0)
 		result = false;
