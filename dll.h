@@ -154,6 +154,7 @@ public:
 	void ShowFrameWindow(bool show);
 	SMarker *GetNewMarkerPtr();
 	void Append();
+	void Remove();
 	
 	virtual void Run(void *Params); 
 	virtual void Kill(void);

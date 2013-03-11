@@ -7,6 +7,7 @@ BEGIN_EVENT_TABLE(CPositionConfig,wxDialog)
 	EVT_TEXT(ID_LON,CPositionConfig::OnLon)
 	EVT_TEXT(ID_LAT,CPositionConfig::OnLat)
 	EVT_BUTTON(ID_OK,CPositionConfig::OnOk)
+	EVT_BUTTON(ID_CANCEL,CPositionConfig::OnCancel)
 END_EVENT_TABLE()
 
 CPositionConfig::CPositionConfig(CDLL *Parent)
@@ -47,7 +48,7 @@ CPositionConfig::CPositionConfig(CDLL *Parent)
 	wxButton *ButtonOk = new wxButton(this,ID_OK,GetMsg(MSG_OK));
 	ButtonSizer->Add(ButtonOk,0,wxALL|wxALIGN_RIGHT,5);
 	
-	wxButton *ButtonCancel = new wxButton(this,wxID_CANCEL,GetMsg(MSG_CANCEL));
+	wxButton *ButtonCancel = new wxButton(this,ID_CANCEL,GetMsg(MSG_CANCEL));
 	ButtonSizer->Add(ButtonCancel,0,wxALL|wxALIGN_RIGHT,5);
 
 	this->SetSizer(MainSizer);
@@ -68,57 +69,35 @@ void CPositionConfig::OnOk(wxCommandEvent &event)
 	this->Hide();
 }
 
+void CPositionConfig::OnCancel(wxCommandEvent &event)
+{
+	_Parent->Remove();
+	this->Hide();
+}
+
 void CPositionConfig::OnLon(wxCommandEvent &event)
 {
 	SMarker *MarkerSelectedPtr =_Parent->GetNewMarkerPtr();
 	if(MarkerSelectedPtr == NULL)
 		return;
-	
-	int degree,min,sec;
-	char dindicator;
 
-	char buffer[64];
-	sprintf(buffer,"%s",textlon->GetValue().char_str());
-
-	int a = sscanf(buffer,"%d° %d' %d'' %c",&degree,&min,&sec,&dindicator);
-	bool result = true;	
-	
-	if(dindicator != 'W' && dindicator != 'E')
-		result = false;
+	float value = MarkerSelectedPtr->x;
 		
-	if(degree > 180 || degree < 0)
-		result = false;
-	if(min >= 60 || min < 0)
-		result = false;
-	if(sec >= 60 || sec < 0)
-		result = false;
-
-	double x,y,to_x,to_y;
-	double _min = 0;
-	
-	if(result)
+	if(SetLon(textlon->GetValue().char_str(),&value))
 	{
-		
-		_min = min + ((double)sec/60);
-		x = degree + ((double)_min/60);
-		
-		_Parent->GetBroker()->Unproject(x,y,&to_x,&to_y);
-
-		if(dindicator == 'W')
-			MarkerSelectedPtr->x = -to_x;
-		else
-			MarkerSelectedPtr->x = to_x;
-
-		
+		double y,to_x,to_y;
+		_Parent->GetBroker()->Unproject(value,y,&to_x,&to_y);
+		MarkerSelectedPtr->x = (float)to_x;
+					
 		_Parent->GetBroker()->Refresh(_Parent->GetBroker()->GetParentPtr());
-
 		textlon->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 		textlon->Refresh();
-	
+
 	}else{
-	
+		
 		textlon->SetForegroundColour(*wxRED);
 		textlon->Refresh();
+	
 	}
 
 }
@@ -129,45 +108,21 @@ void CPositionConfig::OnLat(wxCommandEvent &event)
 	if(MarkerSelectedPtr == NULL)
 		return;
 	
-	int degree,min,sec;
-	char dindicator;
-
-	char buffer[64];
-	sprintf(buffer,"%s",textlat->GetValue().char_str());
-
-	sscanf(buffer,"%d° %d' %d'' %c",&degree,&min,&sec,&dindicator);
-	bool result = true;	
-	if(dindicator != 'S' && dindicator != 'N')
-		result = false;
-		
-	if(degree > 180 || degree < 0)
-		result = false;
-	if(min >= 60 || min < 0)
-		result = false;
-	if(sec >= 60 || sec < 0)
-		result = false;
+	float value = MarkerSelectedPtr->x;
 	
-	double x,y,to_x,to_y;
-	double _min;
-
-	if(result)
+	if(SetLat(textlat->GetValue().char_str(),&value))
 	{
-
-		_min = min + ((double)sec/60);
-		y = degree + ((double)_min/60);
-		_Parent->GetBroker()->Unproject(x,y,&to_x,&to_y);
-
-		if(dindicator == 'N')
-			MarkerSelectedPtr->y = -to_y;
-		else
-			MarkerSelectedPtr->y = to_y;
-				
+		double x,to_x,to_y;
+		x = MarkerSelectedPtr->x;
+		_Parent->GetBroker()->Unproject(x,value,&to_x,&to_y);
+		MarkerSelectedPtr->y = (float)to_y;
+					
 		_Parent->GetBroker()->Refresh(_Parent->GetBroker()->GetParentPtr());
 		textlat->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
 		textlat->Refresh();
-	
+
 	}else{
-	
+		
 		textlat->SetForegroundColour(*wxRED);
 		textlat->Refresh();
 	}

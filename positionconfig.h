@@ -17,6 +17,7 @@ class CPositionConfig: public wxDialog
 	void OnLon(wxCommandEvent &event);
 	void OnLat(wxCommandEvent &event);
 	void OnOk(wxCommandEvent &event);
+	void OnCancel(wxCommandEvent &event);
 						
 public:
 
@@ -31,7 +32,8 @@ public:
 		ID_RADIO,
 		ID_LON,
 		ID_LAT,
-		ID_OK
+		ID_OK,
+		ID_CANCEL
 		
 	};
 	

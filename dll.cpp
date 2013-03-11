@@ -323,7 +323,7 @@ SMarker *CDLL::SetMarker(double x, double y)
 	
 	while(it != vPoints.end())
 	{
-		if(IsPointInsideBox(MapX, MapY, (*it)->x - TranslationX, (*it)->y - TranslationY, (*it)->x + RectWidth-TranslationX , (*it)->y + RectHeight-TranslationY))
+		if(IsPointInsideBox(MapX, MapY, (*it)->x - (RectWidth/2) + TranslationX, (*it)->y - (RectHeight/2) + TranslationY, (*it)->x + (RectWidth/2) + TranslationX , (*it)->y + (RectHeight/2) + TranslationY))
 			return *it;
 				
 		it++;
@@ -532,9 +532,12 @@ void *CDLL::MarkerNew(void *NaviMapIOApiPtr, void *Params)
 	return NULL;
 }
 
-//void CDLL::New()
-//{
-//}
+void CDLL::Remove()
+{
+	free(NewPtr);
+	NewPtr = NULL;
+}
+
 void CDLL::Append()
 {
 	SMarker *Marker = (SMarker*)malloc(sizeof(SMarker));
@@ -700,8 +703,9 @@ void CDLL::SetValues()
 	
 	RectWidth = RECT_WIDTH / SmoothScaleFactor;
 	RectHeight = RECT_HEIGHT / SmoothScaleFactor;
-	TranslationX = (RECT_WIDTH /2)/SmoothScaleFactor; // point in red circle of texture
-	TranslationY = (RECT_HEIGHT/2)/SmoothScaleFactor; // point in red circle of texture
+	TranslationX = 0.0; //(RECT_WIDTH /2)/SmoothScaleFactor; 
+	TranslationY = -(RECT_HEIGHT /2)/SmoothScaleFactor; 
+		
 	InfoHeight = INFO_HEIGHT/SmoothScaleFactor;
 	InfoWidth = INFO_WIDTH/SmoothScaleFactor;
 	HotSpotX = (RECT_WIDTH/2)/SmoothScaleFactor;
@@ -752,7 +756,7 @@ void CDLL::RenderDistance()
 			{
 				glBegin(GL_LINES);
 					glColor4f(1.0f,0.0f,0.0f,0.8f);
-					glVertex2f(vDistance[0]->x,vDistance[0]->y);			
+					glVertex2f(vDistance[0]->x,vDistance[0]->y);
 					glVertex2f(MapX,MapY);
 				glEnd();
 			
@@ -823,42 +827,43 @@ void CDLL::	RenderSelected()
 	glTranslatef(x, y ,0.0f);
 		
 		glBegin(GL_QUADS);
-			glVertex2f(-RectWidth/2, -RectHeight/2);
-			glVertex2f(-RectWidth/2 , RectHeight/2);
-			glVertex2f(RectWidth/2 , RectHeight/2);
-			glVertex2f(RectWidth/2, -RectHeight/2);
+			glVertex2f(  RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);
+			glVertex2f(  RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
+			glVertex2f( -RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
+			glVertex2f( -RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);
 		glEnd();
 		
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
-	RenderText(RECT_WIDTH,0,SelectedPtr->name);
+	glTranslatef(RECT_WIDTH ,-RECT_HEIGHT,0.0f);
+	RenderText(0.0, 0.0,SelectedPtr->name);
 	glPopMatrix();
 		
 }
 
 void CDLL::	RenderHighlighted()
 {
-	
-		
+			
 	double x,y;
 	x = HighlightedPtr->x; 
 	y = HighlightedPtr->y;
 	
 	glPushMatrix();
 	
-	glColor4f(1.0f,0.0f,0.0f,0.5f);	
+	glColor4f(1.0f,0.0f,0.0f,0.2f);	
 	glTranslatef(x, y ,0.0f);
+	//glTranslatef(0.0f,-TranslationX,0.0f);	
 		
 		glBegin(GL_QUADS);
-			glVertex2f(-RectWidth/2, -RectHeight/2);
-			glVertex2f(-RectWidth/2 , RectHeight/2);
-			glVertex2f(RectWidth/2 , RectHeight/2);
-			glVertex2f(RectWidth/2, -RectHeight/2);
+			glVertex2f(  RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);	
+			glVertex2f(  RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
+			glVertex2f( -RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
+			glVertex2f( -RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);
 		glEnd();
 		
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
-	glTranslatef(RECT_WIDTH ,0.0f,0.0f);
+	glTranslatef(RECT_WIDTH ,-RECT_HEIGHT ,0.0f);
 	RenderText(0,0,HighlightedPtr->name);
 	glPopMatrix();
 			
@@ -884,13 +889,14 @@ void CDLL::RenderNew()
 	glPushMatrix();
 		
 	glTranslatef(NewPtr->x,NewPtr->y,0.0f);
+	//glTranslatef(0.0f,-TranslationX,0.0f);
 	glBindTexture( GL_TEXTURE_2D, NewPtr->texture_id );
 
 	glBegin(GL_QUADS);
-		glTexCoord2f(1.0f,1.0f); glVertex2f( TranslationX,  -TranslationY);	
-		glTexCoord2f(1.0f,0.0f); glVertex2f( TranslationX,  TranslationY);
-		glTexCoord2f(0.0f,0.0f); glVertex2f(  -TranslationX,   TranslationY);
-		glTexCoord2f(0.0f,1.0f); glVertex2f(  -TranslationX ,  -TranslationY);
+		glTexCoord2f(1.0f,1.0f); glVertex2f(  RectWidth/2 + TranslationX,  -RectHeight/2 + TranslationY);	
+		glTexCoord2f(1.0f,0.0f); glVertex2f(  RectWidth/2 + TranslationX,   RectHeight/2 + TranslationY);
+		glTexCoord2f(0.0f,0.0f); glVertex2f( -RectWidth/2 + TranslationX,   RectHeight/2 + TranslationY);
+		glTexCoord2f(0.0f,1.0f); glVertex2f( -RectWidth/2 + TranslationX,  -RectHeight/2 + TranslationY);
 	glEnd();
 				
 	glPopMatrix();
@@ -899,30 +905,30 @@ void CDLL::RenderNew()
 
 void CDLL::RenderMarkers()
 {
-	glEnable(GL_TEXTURE_2D);	
 	
+	glEnable(GL_TEXTURE_2D);	
 	for(unsigned int i = 0; i < vPoints.size(); i++)
 	{
-		
 		glColor3f(1.0f,1.0f,1.0f);
 		glPushMatrix();
 		
 		glTranslatef(vPoints[i]->x,vPoints[i]->y,0.0f);
+		//glTranslatef(0.0f,-TranslationX,0.0f);
 		glRotatef(-Angle,0.0f,0.0f,1.0f);
 		glBindTexture( GL_TEXTURE_2D, vPoints[i]->texture_id );
-
-		glBegin(GL_QUADS);
-			glTexCoord2f(1.0f,1.0f); glVertex2f( TranslationX,  -TranslationY);	
-			glTexCoord2f(1.0f,0.0f); glVertex2f( TranslationX,  TranslationY);
-			glTexCoord2f(0.0f,0.0f); glVertex2f(  -TranslationX,   TranslationY);
-			glTexCoord2f(0.0f,1.0f); glVertex2f(  -TranslationX ,  -TranslationY);
-		glEnd();
 				
+		glBegin(GL_QUADS);
+			glTexCoord2f(1.0f,1.0f); glVertex2f(  RectWidth/2 + TranslationX,  -RectHeight/2 + TranslationY);	
+			glTexCoord2f(1.0f,0.0f); glVertex2f(  RectWidth/2 + TranslationX,   RectHeight/2 + TranslationY);
+			glTexCoord2f(0.0f,0.0f); glVertex2f( -RectWidth/2 + TranslationX,   RectHeight/2 + TranslationY);
+			glTexCoord2f(0.0f,1.0f); glVertex2f( -RectWidth/2 + TranslationX,  -RectHeight/2 + TranslationY);
+		glEnd();
+	
 		glPopMatrix();
 				
 	}
 	
-	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);			
 		
 }
 
