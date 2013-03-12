@@ -1,16 +1,16 @@
 #include <wx/hyperlink.h>
-#include "positionconfig.h"
+#include "positiondialog.h"
 #include "tools.h"
 #include "conf.h"
 
-BEGIN_EVENT_TABLE(CPositionConfig,wxDialog)
-	EVT_TEXT(ID_LON,CPositionConfig::OnLon)
-	EVT_TEXT(ID_LAT,CPositionConfig::OnLat)
-	EVT_BUTTON(ID_OK,CPositionConfig::OnOk)
-	EVT_BUTTON(ID_CANCEL,CPositionConfig::OnCancel)
+BEGIN_EVENT_TABLE(CPositionDialog,wxDialog)
+	EVT_TEXT(ID_LON,CPositionDialog::OnLon)
+	EVT_TEXT(ID_LAT,CPositionDialog::OnLat)
+	EVT_BUTTON(ID_OK,CPositionDialog::OnOk)
+	EVT_BUTTON(ID_CANCEL,CPositionDialog::OnCancel)
 END_EVENT_TABLE()
 
-CPositionConfig::CPositionConfig(CDLL *Parent)
+CPositionDialog::CPositionDialog(CDLL *Parent)
 :wxDialog( NULL,wxID_ANY, GetProductName(), wxDefaultPosition, wxDefaultSize )
 {
 	_Parent = Parent;	
@@ -58,24 +58,24 @@ CPositionConfig::CPositionConfig(CDLL *Parent)
 	
 }
 
-CPositionConfig::~CPositionConfig()
+CPositionDialog::~CPositionDialog()
 {
 	
 }
 
-void CPositionConfig::OnOk(wxCommandEvent &event)
+void CPositionDialog::OnOk(wxCommandEvent &event)
 {
 	_Parent->Append();
 	this->Hide();
 }
 
-void CPositionConfig::OnCancel(wxCommandEvent &event)
+void CPositionDialog::OnCancel(wxCommandEvent &event)
 {
 	_Parent->Remove();
 	this->Hide();
 }
 
-void CPositionConfig::OnLon(wxCommandEvent &event)
+void CPositionDialog::OnLon(wxCommandEvent &event)
 {
 	SMarker *MarkerSelectedPtr =_Parent->GetNewMarkerPtr();
 	if(MarkerSelectedPtr == NULL)
@@ -102,7 +102,7 @@ void CPositionConfig::OnLon(wxCommandEvent &event)
 
 }
 
-void CPositionConfig::OnLat(wxCommandEvent &event)
+void CPositionDialog::OnLat(wxCommandEvent &event)
 {
 	SMarker *MarkerSelectedPtr =_Parent->GetNewMarkerPtr();
 	if(MarkerSelectedPtr == NULL)
@@ -129,7 +129,7 @@ void CPositionConfig::OnLat(wxCommandEvent &event)
 
 }
 
-void CPositionConfig::SetPosition(double lon, double lat)
+void CPositionDialog::SetPosition(double lon, double lat)
 {
 	textlon->SetValue(FormatLongitude(lon));
 	textlat->SetValue(FormatLatitude(lat));

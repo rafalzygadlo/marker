@@ -6,7 +6,7 @@
 #include <wx/wfstream.h>
 #include "icons.h"
 #include "unitconfig.h"
-#include "positionconfig.h"
+#include "positiondialog.h"
 
 #define BUFSIZE 512
 
@@ -37,7 +37,7 @@ unsigned char PluginInfoBlock[] = {
 CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 {
 	NewPtr = NULL;
-	PositionConfig = NULL;	
+	PositionDialog = NULL;	
 	Broker = NaviBroker;
 	ConfigPath = wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(MARKER_CONFIG_FILE));
 	FileConfig = new wxFileConfig(_("marker"),wxEmptyString,ConfigPath,wxEmptyString);
@@ -87,8 +87,8 @@ CDLL::~CDLL()
 	delete MarkerIcons;
 	delete MyFrame;
 
-	if(PositionConfig != NULL)
-		delete PositionConfig;
+	if(PositionDialog != NULL)
+		delete PositionDialog;
 
 }
 
@@ -574,8 +574,8 @@ void CDLL::SetPosition()
 {
 	double mom[2];
 	
-	if(PositionConfig == NULL)
-		PositionConfig = new CPositionConfig(this);
+	if(PositionDialog == NULL)
+		PositionDialog = new CPositionDialog(this);
 	
 	Broker->GetMouseOM(mom);
 	if(NewPtr != NULL)
@@ -584,7 +584,8 @@ void CDLL::SetPosition()
 		NewPtr->y = MapY;
 	}
 	
-	PositionConfig->SetPosition(mom[0],mom[1]);
+	PositionDialog->SetPosition(mom[0],mom[1]);
+	Broker->Refresh(Broker->GetParentPtr());
 
 }
 SMarker *CDLL::GetNewMarkerPtr()
@@ -600,7 +601,7 @@ void CDLL::New(double x, double y)
 	
 	Add(x,y,0,text,NULL,0,true);
 	SetPosition();
-	PositionConfig->Show();
+	PositionDialog->Show();
 
 
 }
@@ -852,15 +853,12 @@ void CDLL::	RenderHighlighted()
 	
 	glColor4f(1.0f,0.0f,0.0f,0.2f);	
 	glTranslatef(x, y ,0.0f);
-	//glTranslatef(0.0f,-TranslationX,0.0f);	
-		
 		glBegin(GL_QUADS);
 			glVertex2f(  RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);	
 			glVertex2f(  RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
 			glVertex2f( -RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
 			glVertex2f( -RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);
 		glEnd();
-		
 	glColor4f(0.0f,0.0f,0.0f,0.8f);
 	glScalef(0.5/MapScale,0.5/MapScale,0.0);
 	glTranslatef(RECT_WIDTH ,-RECT_HEIGHT ,0.0f);

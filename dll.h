@@ -10,7 +10,7 @@
 #include "NaviFont.h"
 #include "NaviDisplayApi.h"
 #include "conf.h"
-#include "positionconfig.h"
+#include "positiondialog.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -21,10 +21,10 @@ class CMarkerIcons;
 class CMyFrame;
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 //DLL
-class CPositionConfig;
+class CPositionDialog;
 class CDLL :public CNaviMapIOApi
 {	
-	CPositionConfig *PositionConfig;
+	CPositionDialog *PositionDialog;
 	CMyFrame *MyFrame;
 	bool ShowWindow;
 	double HotSpotX;

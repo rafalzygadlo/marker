@@ -1,5 +1,5 @@
-#ifndef __POSITIONCONFIG
-#define __POSITIONCONFIG
+#ifndef __POSITIONDIALOG
+#define __POSITIONDIALOG
 
 #include <wx/wx.h>
 #include <vector>
@@ -7,7 +7,7 @@
 #include "dll.h"
 
 class CDLL;
-class CPositionConfig: public wxDialog
+class CPositionDialog: public wxDialog
 {
 	CDLL *_Parent;
 	size_t Unit;
@@ -21,8 +21,8 @@ class CPositionConfig: public wxDialog
 						
 public:
 
-	CPositionConfig(CDLL *Parent);
-	~CPositionConfig();
+	CPositionDialog(CDLL *Parent);
+	~CPositionDialog();
 	void SetPosition(double lon, double lat);
 		
 	DECLARE_EVENT_TABLE();
