@@ -368,9 +368,9 @@ void CDLL::CreateApiMenu(void)
 	NaviApiMenu = new CNaviApiMenu( GetMsg(MSG_MARKERS).wchar_str());	// nie u¿uwaæ delete - klasa zwalnia obiekt automatycznie
 	NaviApiMenu->AddItem( GetMsg(MSG_NEW_MARKER).wchar_str(),this, MenuNew, true );
 	NaviApiMenu->AddItem( GetMsg(MSG_DELETE_MARKER).wchar_str(),this, MenuDelete, true );
-	NaviApiMenu->AddItem( GetMsg(MSG_MOVE_MARKER).wchar_str(),this, MenuMove, true );
+	//NaviApiMenu->AddItem( GetMsg(MSG_MOVE_MARKER).wchar_str(),this, MenuMove, true );
 	NaviApiMenu->AddItem( GetMsg(MSG_PROPERTIES_MARKER).wchar_str(),this, MenuProperties, true );
-	NaviApiMenu->AddItem( GetMsg(MSG_SETTINGS_MARKER).wchar_str(),this, MenuConfig, true );
+	NaviApiMenu->AddItem( GetMsg(MSG_SETTINGS_MARKER).wchar_str(),this, MenuConfig, false );
 	
 }
 
@@ -588,6 +588,7 @@ void CDLL::SetPosition()
 	Broker->Refresh(Broker->GetParentPtr());
 
 }
+
 SMarker *CDLL::GetNewMarkerPtr()
 {
 	return NewPtr;
@@ -1144,7 +1145,7 @@ const NAVIMAPAPI wchar_t *NaviPluginIntroduce(int LangID)
 
 int NAVIMAPAPI GetNaviPluginType(void) 
 {
-	return MAP_PLUGIN_RUN_ON_DEMAND;
+	return MAP_PLUGIN_RUN_ON_DEMAND | RENDER_PRIORITY_10;
 }
 
 #if defined(_WIN32) || defined(_WIN64)
