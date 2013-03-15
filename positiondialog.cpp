@@ -11,7 +11,7 @@ BEGIN_EVENT_TABLE(CPositionDialog,wxDialog)
 END_EVENT_TABLE()
 
 CPositionDialog::CPositionDialog(CDLL *Parent)
-:wxDialog( NULL,wxID_ANY, GetProductName(), wxDefaultPosition, wxDefaultSize )
+:wxDialog( NULL,wxID_ANY, GetProductName(), wxDefaultPosition, wxDefaultSize, wxCAPTION )
 {
 	_Parent = Parent;	
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
@@ -54,7 +54,9 @@ CPositionDialog::CPositionDialog(CDLL *Parent)
 	this->SetSizer(MainSizer);
 
 	GetSizer()->SetSizeHints(this);
-	Center();
+
+	wxPoint pt(10,10);
+	this->SetPosition(pt);
 	
 }
 
@@ -129,7 +131,7 @@ void CPositionDialog::OnLat(wxCommandEvent &event)
 
 }
 
-void CPositionDialog::SetPosition(double lon, double lat)
+void CPositionDialog::_SetPosition(double lon, double lat)
 {
 	textlon->SetValue(FormatLongitude(lon));
 	textlat->SetValue(FormatLatitude(lat));

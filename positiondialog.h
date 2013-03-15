@@ -23,7 +23,7 @@ public:
 
 	CPositionDialog(CDLL *Parent);
 	~CPositionDialog();
-	void SetPosition(double lon, double lat);
+	void _SetPosition(double lon, double lat);
 		
 	DECLARE_EVENT_TABLE();
 	enum

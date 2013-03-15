@@ -24,6 +24,8 @@ class CMyFrame;
 class CPositionDialog;
 class CDLL :public CNaviMapIOApi
 {	
+	double CenterX, CenterY;
+	wxArrayPtrVoid TextureList;
 	CPositionDialog *PositionDialog;
 	CMyFrame *MyFrame;
 	bool ShowWindow;
@@ -119,7 +121,7 @@ class CDLL :public CNaviMapIOApi
 	SMarker *Get(int id);
 	double Distance();
 	SMarker* SetMarker(double x, double y);
-	void SetPosition();
+	void SetPosition(double x, double y);
 	void RenderNew();
 	
 	static void *MenuConfig(void *NaviMapIOApiPtr, void *Input);

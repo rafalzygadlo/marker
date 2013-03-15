@@ -65,6 +65,7 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	MapY = 0.0;
 	FirstRun = true;
 	ShowWindow = false;
+	DistanceUnit = nvNauticMiles;
 	
 	MarkerIcons = new CMarkerIcons();
 	
@@ -79,6 +80,9 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	FromLMB = false;
 	CreateApiMenu();
 
+	
+
+
 }
 
 CDLL::~CDLL()
@@ -89,6 +93,8 @@ CDLL::~CDLL()
 
 	if(PositionDialog != NULL)
 		delete PositionDialog;
+
+	
 
 }
 
@@ -146,6 +152,9 @@ void CDLL::ReadConfig()
 	
 	FileConfig->Read(_(KEY_DISTANCE_UNIT), &DistanceUnit,nvNauticMiles);
 		
+	if(DistanceUnit < 0)
+		DistanceUnit = nvNauticMiles;
+
 	if(_file.Exists(PointsPath))
 	{
 		if(_file.Open(PointsPath))
@@ -269,6 +278,13 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	Broker->GetMouseOM(mom);
 	MapScale = Broker->GetMapScale();
 	Broker->Unproject(mom[0],mom[1],&_x,&_y);
+	double vm[4];
+	Broker->GetVisibleMap(vm);
+	
+	nvMidPoint(vm[0],vm[1],vm[2],vm[3],&CenterX,&CenterY); 
+	MouseX = mom[0];
+	MouseY = mom[0];
+
 	_y = _y *-1;
 	
 	MapX = _x;
@@ -294,7 +310,7 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 
 	//  LMB Begins Here
 
-	SetPosition();
+	SetPosition(MapX,MapY);
 	
 	if(add)
 	{
@@ -430,7 +446,7 @@ void CDLL::Menu(int type)
 	switch(type)
 	{
 		case BUTTON_TYPE_NEW:
-			New(MapX,MapY); // punkty na mapie
+			New(CenterX,CenterY); // punkty na mapie
 		break;
 
 		case BUTTON_TYPE_DELETE:
@@ -456,7 +472,6 @@ void CDLL::CreateSymbol(void *MemoryBlock,long MemoryBlockSize)
 	BlockMarkerTGA_0.Ptr = MemoryBlock;
 	BlockMarkerTGA_0.Size = MemoryBlockSize;
 	TextureMarkerTGA_0 = LoadFromMemoryBlockTGA( &BlockMarkerTGA_0 );
-
 }
 
 void CDLL::CreateTexture(TTexture *Texture, GLuint *TextureID)
@@ -480,16 +495,26 @@ void CDLL::CreateTextures(void)
 	
 	while((entry = zip.GetNextEntry()) != NULL)
 	{
+		
 		wxString str = entry->GetName();
 		unsigned char *buffer = (unsigned char*)malloc(zip.GetLength());
 		int size = zip.GetLength();
 		zip.Read( buffer,size );
+				
 		CreateSymbol(buffer, size);
 		CreateTexture( TextureMarkerTGA_0,  &MarkerTextureID_0 ); // selected icon
 		MarkerIcons->NewIcon(buffer, size, MarkerTextureID_0,i);
+		
+		free(buffer);
 		i++;
+		
+			
+		delete entry;
+		
 	}
-
+	
+	
+	
 }
 
 std::vector <SMarker*> CDLL::GetPoints()
@@ -570,7 +595,7 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 		vPoints.push_back(Points);
 }
 
-void CDLL::SetPosition()
+void CDLL::SetPosition(double x, double y)
 {
 	double mom[2];
 	
@@ -580,11 +605,13 @@ void CDLL::SetPosition()
 	Broker->GetMouseOM(mom);
 	if(NewPtr != NULL)
 	{
-		NewPtr->x = MapX;
-		NewPtr->y = MapY;
+		NewPtr->x = x;
+		NewPtr->y = y;
 	}
+	double to_x,to_y;
+	Broker->Unproject(x,y,&to_x,&to_y);
 	
-	PositionDialog->SetPosition(mom[0],mom[1]);
+	PositionDialog->_SetPosition(to_x,to_y * -1);
 	Broker->Refresh(Broker->GetParentPtr());
 
 }
@@ -601,7 +628,8 @@ void CDLL::New(double x, double y)
 	wsprintf(text,L"%s%d",GetMsg(MSG_MARKER).wc_str(),vPoints.size());
 	
 	Add(x,y,0,text,NULL,0,true);
-	SetPosition();
+	Broker->Refresh(Broker->GetParentPtr());
+	SetPosition(CenterX,CenterY);
 	PositionDialog->Show();
 
 
@@ -865,8 +893,6 @@ void CDLL::	RenderHighlighted()
 	glTranslatef(RECT_WIDTH ,-RECT_HEIGHT ,0.0f);
 	RenderText(0,0,HighlightedPtr->name);
 	glPopMatrix();
-			
-	
 	
 }
 
@@ -883,7 +909,6 @@ void CDLL::RenderText(double x, double y, wchar_t *text)
 void CDLL::RenderNew()
 {
 	glEnable(GL_TEXTURE_2D);	
-	
 	glColor3f(1.0f,1.0f,1.0f);
 	glPushMatrix();
 		
@@ -1022,13 +1047,16 @@ CMarkerIcons::~CMarkerIcons()
 	{
 		free(vIcons[i]->icon);
 		free(vIcons[i]);
+		//free(vIcons[]
 	}
+	vIcons.clear();
 }
 
 void CMarkerIcons::NewIcon(unsigned char *data, int size, int texture_id, int icon_id)
 {
-	SIcon *Icon = (SIcon*)malloc(size);
-	Icon->icon = data;
+	SIcon *Icon = (SIcon*)malloc(sizeof(SIcon));
+	Icon->icon = (unsigned char*)malloc(size);
+	memcpy(Icon->icon,data,size);
 	Icon->icon_size = size;
 	Icon->texture_id = texture_id;
 	Icon->icon_id = icon_id;
