@@ -574,6 +574,8 @@ void CDLL::Append()
 
 void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type, bool _new)
 {
+	
+	
 	SMarker *Points = (SMarker*)malloc(sizeof(SMarker));
 	memset(Points,0,sizeof(SMarker));
 	Points->x = x;
@@ -609,7 +611,7 @@ void CDLL::SetPosition(double x, double y)
 		NewPtr->y = y;
 	}
 	double to_x,to_y;
-	Broker->Unproject(x,y,&to_x,&to_y);
+	Broker->Project(x,y,&to_x,&to_y);
 	
 	PositionDialog->_SetPosition(to_x,to_y * -1);
 	Broker->Refresh(Broker->GetParentPtr());
@@ -627,6 +629,9 @@ void CDLL::New(double x, double y)
 	wchar_t text[255];
 	wsprintf(text,L"%s%d",GetMsg(MSG_MARKER).wc_str(),vPoints.size());
 	
+	if(NewPtr != NULL)
+		return;
+
 	Add(x,y,0,text,NULL,0,true);
 	Broker->Refresh(Broker->GetParentPtr());
 	SetPosition(CenterX,CenterY);
