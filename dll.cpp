@@ -599,12 +599,10 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 
 void CDLL::SetPosition(double x, double y)
 {
-	double mom[2];
-	
+		
 	if(PositionDialog == NULL)
 		PositionDialog = new CPositionDialog(this);
 	
-	Broker->GetMouseOM(mom);
 	if(NewPtr != NULL)
 	{
 		NewPtr->x = x;
