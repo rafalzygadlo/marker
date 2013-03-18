@@ -18,12 +18,8 @@ CUnitConfig::CUnitConfig()
 	wxPanel *Panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	Panel->SetBackgroundColour(wxColor(255,255,255));
 	Panel->SetSizer(PanelSizer);
-	
-	wxFont font;
-	font.SetPointSize(14);
-	
+		
 	wxStaticText *LabelDistance = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DISTANCE_UNITS) ,wxDefaultPosition,wxDefaultSize);
-	LabelDistance->SetFont(font);
 	PanelSizer->Add(LabelDistance,0,wxALL,5);
 		
 	for(size_t i = 0; i < nvDistanceSize;i++)

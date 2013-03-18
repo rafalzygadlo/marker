@@ -18,5 +18,7 @@ wxString GetProductInfo();
 wxString GetProductName();
 bool SetLat(char *text, float *val);
 bool SetLon(char *text, float *val);
+wxString GetWorkDir();
+wxString GetConfigFile();
 #endif
 

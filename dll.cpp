@@ -36,12 +36,12 @@ unsigned char PluginInfoBlock[] = {
 
 CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 {
+
 	NewPtr = NULL;
 	PositionDialog = NULL;	
 	Broker = NaviBroker;
-	ConfigPath = wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(MARKER_CONFIG_FILE));
-	FileConfig = new wxFileConfig(_("marker"),wxEmptyString,ConfigPath,wxEmptyString);
-	PointsPath = wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(MARKER_DATA_FILE));
+	FileConfig = new wxFileConfig(GetProductName(),wxEmptyString,GetConfigFile(),wxEmptyString);
+	PointsPath = wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(DATA_FILE));
 	
 	HotSpotX = HotSpotY = 0;
 	SelectedIconID = 0;
@@ -136,15 +136,6 @@ void CDLL::SetSmoothScaleFactor(double _Scale)
 		SmoothScaleFactor = _Scale;
 	else
 		SmoothScaleFactor = Factor;
-}
-
-wxString CDLL::GetWorkDir(void)
-{
-	static wxString buffer;
-	wxStandardPaths *Paths = new wxStandardPaths();
-	buffer.Printf(wxT("%s%s%s%s"), Paths->GetUserDataDir().wc_str(wxConvUTF8),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR), wxT(DIR_SEPARATOR) );
-	delete Paths;
-	return buffer;
 }
 
 void CDLL::ReadConfig()
@@ -272,16 +263,13 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	// . . . . . . . . . . . . . . . . . . . . 
 	if(FirstTime)
 		return;
-	
+		
 	double mom[2];
 	double _x,_y;
 	Broker->GetMouseOM(mom);
 	MapScale = Broker->GetMapScale();
 	Broker->Unproject(mom[0],mom[1],&_x,&_y);
-	double vm[4];
-	Broker->GetVisibleMap(vm);
 	
-	nvMidPoint(vm[0],vm[1],vm[2],vm[3],&CenterX,&CenterY); 
 	MouseX = mom[0];
 	MouseY = mom[0];
 
@@ -307,11 +295,10 @@ void CDLL::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	
 	if(!lmb)
 		return;
-
-	//  LMB Begins Here
-
+		
 	SetPosition(MapX,MapY);
-	
+	//  LMB Begins Here
+		
 	if(add)
 	{
 		FromLMB = true;
@@ -382,7 +369,7 @@ void CDLL::CreateApiMenu(void)
 {
 
 	NaviApiMenu = new CNaviApiMenu( GetMsg(MSG_MARKERS).wchar_str());	// nie u¿uwaæ delete - klasa zwalnia obiekt automatycznie
-	NaviApiMenu->AddItem( GetMsg(MSG_NEW_MARKER).wchar_str(),this, MenuNew, true );
+	NaviApiMenu->AddItem( GetMsg(MSG_NEW_MARKER).wchar_str(),this, MenuNew, false );
 	NaviApiMenu->AddItem( GetMsg(MSG_DELETE_MARKER).wchar_str(),this, MenuDelete, true );
 	//NaviApiMenu->AddItem( GetMsg(MSG_MOVE_MARKER).wchar_str(),this, MenuMove, true );
 	NaviApiMenu->AddItem( GetMsg(MSG_PROPERTIES_MARKER).wchar_str(),this, MenuProperties, true );
@@ -446,7 +433,7 @@ void CDLL::Menu(int type)
 	switch(type)
 	{
 		case BUTTON_TYPE_NEW:
-			New(CenterX,CenterY); // punkty na mapie
+			New(); // punkty na mapie
 		break;
 
 		case BUTTON_TYPE_DELETE:
@@ -574,8 +561,7 @@ void CDLL::Append()
 
 void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type, bool _new)
 {
-	
-	
+		
 	SMarker *Points = (SMarker*)malloc(sizeof(SMarker));
 	memset(Points,0,sizeof(SMarker));
 	Points->x = x;
@@ -583,7 +569,7 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 	Points->icon_id = MarkerIcons->GetItem(icon_id)->icon_id;
 	Points->texture_id = MarkerIcons->GetItem(icon_id)->texture_id;
 	Points->type = type;
-	
+	NewPtr = Points;		
 		
 	if(name != NULL)
 		wcscpy_s(Points->name,MARKER_NAME_SIZE, name);
@@ -591,7 +577,7 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 	if(description != NULL)
 		wcscpy_s(Points->description,MARKER_DESCRIPTION_SIZE,description);
 	
-	NewPtr = Points;	
+	
 	
 	if(!_new)
 		vPoints.push_back(Points);
@@ -621,7 +607,7 @@ SMarker *CDLL::GetNewMarkerPtr()
 	return NewPtr;
 }
 
-void CDLL::New(double x, double y)
+void CDLL::New()
 {
 		
 	wchar_t text[255];
@@ -630,12 +616,16 @@ void CDLL::New(double x, double y)
 	if(NewPtr != NULL)
 		return;
 
-	Add(x,y,0,text,NULL,0,true);
-	Broker->Refresh(Broker->GetParentPtr());
+	double vm[4];
+	Broker->GetVisibleMap(vm);
+	
+	nvMidPoint(vm[0],vm[1],vm[2],vm[3],&CenterX,&CenterY);
+	Add(CenterX,CenterY,0,text,NULL,0,true);
+		
 	SetPosition(CenterX,CenterY);
 	PositionDialog->Show();
-
-
+	Broker->Refresh(Broker->GetParentPtr());
+	
 }
 
 
@@ -912,22 +902,20 @@ void CDLL::RenderText(double x, double y, wchar_t *text)
 void CDLL::RenderNew()
 {
 	glEnable(GL_TEXTURE_2D);	
-	glColor3f(1.0f,1.0f,1.0f);
+	
 	glPushMatrix();
-		
+	glColor3f(1.0f,0.0f,0.0f);	
 	glTranslatef(NewPtr->x,NewPtr->y,0.0f);
-	//glTranslatef(0.0f,-TranslationX,0.0f);
 	glBindTexture( GL_TEXTURE_2D, NewPtr->texture_id );
-
 	glBegin(GL_QUADS);
 		glTexCoord2f(1.0f,1.0f); glVertex2f(  RectWidth/2 + TranslationX,  -RectHeight/2 + TranslationY);	
 		glTexCoord2f(1.0f,0.0f); glVertex2f(  RectWidth/2 + TranslationX,   RectHeight/2 + TranslationY);
 		glTexCoord2f(0.0f,0.0f); glVertex2f( -RectWidth/2 + TranslationX,   RectHeight/2 + TranslationY);
 		glTexCoord2f(0.0f,1.0f); glVertex2f( -RectWidth/2 + TranslationX,  -RectHeight/2 + TranslationY);
 	glEnd();
-				
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
+
 }
 
 void CDLL::RenderMarkers()

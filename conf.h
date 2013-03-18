@@ -11,8 +11,8 @@
 #endif
 
 #define DIR_WORKDIR "workdir"
-#define MARKER_CONFIG_FILE "marker.conf"
-#define MARKER_DATA_FILE "marker.data"
+#define CONFIG_FILE "marker.conf"
+#define DATA_FILE "marker.data"
 //#define MARKER_ICONSET_FILE_NAME "marker.icons"
 
 #define PRODUCT_NAME "Markers Plugin"
@@ -84,8 +84,8 @@
 #define NV_PI 3.1415926535897932384626433
 enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 };
 
-
-
+#define KEY_POSITION_DIALOG_X "Position_Dialog_X"
+#define KEY_POSITION_DIALOG_Y "Position_Dialog_Y"
 
 typedef struct
 {

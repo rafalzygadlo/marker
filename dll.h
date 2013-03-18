@@ -3,7 +3,6 @@
 #include "NaviMapIOApi.h"
 #include <wx/wx.h>
 #include <wx/fileconf.h>
-#include <wx/stdpaths.h>
 #include <wx/notebook.h>
 #include "tgamem.h"
 #include <GL/gl.h>
@@ -80,7 +79,6 @@ class CDLL :public CNaviMapIOApi
 	void CreateApiMenu(void);
 	void SetButtonAction(int action);
 	void Menu(int type);
-	wxString GetWorkDir(void);
 	void WritecConfig();
 	void ReadConfig();
 	void CreateTextures(void);
@@ -94,7 +92,7 @@ class CDLL :public CNaviMapIOApi
 	bool GetClickedOnButton();
 	void Add(double x, double y, int icon_id, wchar_t *name, wchar_t *description, int type = 0, bool _new = false);
 	
-	void New(double x, double y);	
+	void New();	
 	void RenderIcons();
 	void RenderPoints();
 	void RenderMarkers();

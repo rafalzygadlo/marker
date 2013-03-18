@@ -13,6 +13,8 @@ END_EVENT_TABLE()
 CPositionDialog::CPositionDialog(CDLL *Parent)
 :wxDialog( NULL,wxID_ANY, GetProductName(), wxDefaultPosition, wxDefaultSize, wxCAPTION )
 {
+	
+	wxFileConfig *FileConfig = new wxFileConfig(GetProductName(),wxEmptyString,GetConfigFile(),wxEmptyString);
 	_Parent = Parent;	
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	
@@ -54,15 +56,25 @@ CPositionDialog::CPositionDialog(CDLL *Parent)
 	this->SetSizer(MainSizer);
 
 	GetSizer()->SetSizeHints(this);
-
-	wxPoint pt(10,10);
+	int PX,PY;
+	FileConfig->Read(_(KEY_POSITION_DIALOG_X),&PX,10);
+	FileConfig->Read(_(KEY_POSITION_DIALOG_Y),&PY,10);
+	wxPoint pt(PX,PY);
 	this->SetPosition(pt);
 	
+	delete FileConfig;
 }
 
 CPositionDialog::~CPositionDialog()
 {
+
+	wxFileConfig *FileConfig = new wxFileConfig(GetProductName(),wxEmptyString,GetConfigFile(),wxEmptyString);
 	
+	FileConfig->Write(_(KEY_POSITION_DIALOG_X),GetPosition().x);
+	FileConfig->Write(_(KEY_POSITION_DIALOG_Y),GetPosition().y);
+	
+	delete FileConfig;
+
 }
 
 void CPositionDialog::OnOk(wxCommandEvent &event)

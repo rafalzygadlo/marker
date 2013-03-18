@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <wx/wx.h>
+#include <wx/stdpaths.h>
 #include "conf.h"
 #include "tools.h"
 #define CONVERTED_DEGREE_LENGTH	15
@@ -85,6 +86,21 @@ const wxChar *nvDistanceU[2][3] =
 	}
 
 };
+
+wxString GetConfigFile()
+{
+	return wxString::Format(wxT("%s%s%s"),GetWorkDir().wc_str(),wxT(DIR_SEPARATOR),_(CONFIG_FILE));
+}
+
+wxString GetWorkDir()
+{
+	static wxString buffer;
+	wxStandardPaths *Paths = new wxStandardPaths();
+	buffer.Printf(wxT("%s%s%s%s"), Paths->GetUserDataDir().wc_str(wxConvUTF8),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR), wxT(DIR_SEPARATOR) );
+	delete Paths;
+	return buffer;
+}
+
 
 wxString GetProductInfo()
 {
