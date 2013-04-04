@@ -155,13 +155,15 @@ CMyFrame::~CMyFrame(void)
 
 void CMyFrame::OnLon(wxCommandEvent &event)
 {
+
 	float value = MarkerSelectedPtr->x;
-		
+	
 	if(SetLon(textlon->GetValue().char_str(),&value))
 	{
 		double y,to_x,to_y;
+		y = MarkerSelectedPtr->y;
 		m_DLL->GetBroker()->Unproject(value,y,&to_x,&to_y);
-		MarkerSelectedPtr->x = (float)to_x;
+		MarkerSelectedPtr->x = to_x;
 					
 		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 		textlon->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
@@ -180,13 +182,17 @@ void CMyFrame::OnLon(wxCommandEvent &event)
 void CMyFrame::OnLat(wxCommandEvent &event)
 {
 	float value = MarkerSelectedPtr->y;
-		
+
 	if(SetLat(textlat->GetValue().char_str(),&value))
 	{
+		
 		double x,to_x,to_y;
 		x = MarkerSelectedPtr->x;
+		//fprintf(stdout,"x:%f value:%f\n",x,value);
 		m_DLL->GetBroker()->Unproject(x,value,&to_x,&to_y);
-		MarkerSelectedPtr->y = (float)to_y;
+
+		//fprintf(stdout,"to_x:%f to_y:%f\n",to_x,to_y);
+		MarkerSelectedPtr->y = to_y;
 					
 		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 		textlat->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);
