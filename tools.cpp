@@ -3,6 +3,8 @@
 #include <wx/stdpaths.h>
 #include "conf.h"
 #include "tools.h"
+#include "version.h"
+
 #define CONVERTED_DEGREE_LENGTH	15
 
 int GlobalLanguageID;
@@ -104,11 +106,11 @@ wxString GetWorkDir()
 
 wxString GetProductInfo()
 {
-	return wxString::Format(_("%s %s\n%s"),_(PRODUCT_NAME),_(PRODUCT_VERSION),_(PRODUCT_COPYRIGHT));
+	return wxString::Format(_("%s %s\n%s"),_(PRODUCT_NAME),_(APPLICATION_VERSION_STR),_(PRODUCT_COPYRIGHT));
 }
 wxString GetProductName()
 {
-	return wxString::Format(_("%s %s"),_(PRODUCT_NAME),_(PRODUCT_VERSION));
+	return wxString::Format(_("%s %s"),_(PRODUCT_NAME),_(APPLICATION_VERSION_STR));
 }
 
 
@@ -158,8 +160,6 @@ wxString FormatLongitude(float x)
       }
       return str;
 }
-
-
 
 wxString FormatLatitude(float y) 
 {

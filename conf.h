@@ -16,7 +16,6 @@
 //#define MARKER_ICONSET_FILE_NAME "marker.icons"
 
 #define PRODUCT_NAME "Markers Plugin"
-#define PRODUCT_VERSION "1.0"
 #define PRODUCT_COPYRIGHT "Copyright© 2010/2011 by NavSim. All rights reserved"
 
 
