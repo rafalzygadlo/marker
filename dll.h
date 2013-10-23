@@ -6,7 +6,6 @@
 #include <wx/notebook.h>
 #include "tgamem.h"
 #include <GL/gl.h>
-#include "NaviFont.h"
 #include "NaviDisplayApi.h"
 #include "conf.h"
 #include "positiondialog.h"

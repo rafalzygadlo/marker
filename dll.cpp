@@ -80,9 +80,6 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	FromLMB = false;
 	CreateApiMenu();
 
-	
-
-
 }
 
 CDLL::~CDLL()
@@ -93,9 +90,6 @@ CDLL::~CDLL()
 
 	if(PositionDialog != NULL)
 		delete PositionDialog;
-
-	
-
 }
 
 SMarker *CDLL::GetSelectedPtr()
@@ -128,7 +122,6 @@ void CDLL::SetMarkerIconID(int id)
 	SelectedIconID = id;
 	SelectedPtr->icon_id = id;
 }
-
 
 void CDLL::SetSmoothScaleFactor(double _Scale) 
 {
@@ -220,7 +213,7 @@ void CDLL::SetButtonAction(int action)
 
 void CDLL::Run(void *Params)
 {
-	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF );
+	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF );
 //	ThisPtr = (CNaviMapIOApi*)this;
 
 }
@@ -539,7 +532,7 @@ void *CDLL::MarkerNew(void *NaviMapIOApiPtr, void *Params)
 {
 	SMarker *pt = (SMarker*)Params;
 	CDLL *ThisPtr = (CDLL*)NaviMapIOApiPtr;
-	ThisPtr->Add(pt->x,pt->y,pt->icon_id,pt->name,pt->description,pt->type,true);
+	ThisPtr->Add(pt->x,pt->y,pt->icon_id,pt->name,pt->description,pt->type,false);
 		
 	return NULL;
 }
@@ -569,7 +562,8 @@ void CDLL::Add(double x, double y, int icon_id, wchar_t *name, wchar_t *descript
 	Points->icon_id = MarkerIcons->GetItem(icon_id)->icon_id;
 	Points->texture_id = MarkerIcons->GetItem(icon_id)->texture_id;
 	Points->type = type;
-	NewPtr = Points;		
+	if(_new)
+		NewPtr = Points;		
 		
 	if(name != NULL)
 		wcscpy_s(Points->name,MARKER_NAME_SIZE, name);
@@ -823,7 +817,6 @@ void CDLL::RenderDistance()
 			
 		glTranslatef(v1 ,v2 ,0.0f);
 		glScalef(0.6/MapScale,0.6/MapScale,0.0);
-		RenderText(0.0,0.0,val);
 		glPopMatrix();
 			
 		
@@ -856,10 +849,6 @@ void CDLL::	RenderSelected()
 			glVertex2f( -RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);
 		glEnd();
 		
-	glColor4f(0.0f,0.0f,0.0f,0.8f);
-	glScalef(0.5/MapScale,0.5/MapScale,0.0);
-	glTranslatef(RECT_WIDTH ,-RECT_HEIGHT,0.0f);
-	RenderText(0.0, 0.0,SelectedPtr->name);
 	glPopMatrix();
 		
 }
@@ -881,10 +870,10 @@ void CDLL::	RenderHighlighted()
 			glVertex2f( -RectWidth/2 + TranslationX,  RectHeight/2 + TranslationY);
 			glVertex2f( -RectWidth/2 + TranslationX, -RectHeight/2 + TranslationY);
 		glEnd();
-	glColor4f(0.0f,0.0f,0.0f,0.8f);
-	glScalef(0.5/MapScale,0.5/MapScale,0.0);
-	glTranslatef(RECT_WIDTH ,-RECT_HEIGHT ,0.0f);
-	RenderText(0,0,HighlightedPtr->name);
+	//glColor4f(0.0f,0.0f,0.0f,0.8f);
+	//glScalef(0.5/MapScale,0.5/MapScale,0.0);
+	//glTranslatef(RECT_WIDTH ,-RECT_HEIGHT ,0.0f);
+	//RenderText(0,0,HighlightedPtr->name);
 	glPopMatrix();
 	
 }
@@ -894,7 +883,7 @@ void CDLL::RenderText(double x, double y, wchar_t *text)
 {
 	
 	glEnable(GL_TEXTURE_2D);
-	Broker->Print(Broker->GetParentPtr(),x,y,text);
+//	Broker->Print(Broker->GetParentPtr(),x,y,text);
 	glDisable(GL_TEXTURE_2D);
 	
 }
@@ -924,7 +913,7 @@ void CDLL::RenderMarkers()
 	glEnable(GL_TEXTURE_2D);	
 	for(unsigned int i = 0; i < vPoints.size(); i++)
 	{
-		glColor3f(1.0f,1.0f,1.0f);
+		glColor4f(1.0f,1.0f,1.0f,0.6f);
 		glPushMatrix();
 		
 		glTranslatef(vPoints[i]->x,vPoints[i]->y,0.0f);

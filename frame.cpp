@@ -311,6 +311,9 @@ void CMyFrame::ShowWindow(bool show)
 		
 		double to_x, to_y;
 		MarkerSelectedPtr = m_DLL->GetSelectedPtr();
+		if(MarkerSelectedPtr == NULL)
+			return;
+		
 		m_DLL->GetBroker()->Project(MarkerSelectedPtr->x,MarkerSelectedPtr->y,&to_x,&to_y);
 	
 		double vm[4];
