@@ -215,7 +215,9 @@ void CDLL::Run(void *Params)
 {
 	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF );
 //	ThisPtr = (CNaviMapIOApi*)this;
-
+	
+	// refresh dla wywolania renderu zeby skreowac ikony
+	Broker->Refresh(Broker->GetParentPtr());
 }
 
 void CDLL::Kill(void)
