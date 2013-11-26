@@ -192,7 +192,7 @@ void CMyFrame::OnLat(wxCommandEvent &event)
 		m_DLL->GetBroker()->Unproject(x,value,&to_x,&to_y);
 
 		//fprintf(stdout,"to_x:%f to_y:%f\n",to_x,to_y);
-		MarkerSelectedPtr->y = to_y;
+		MarkerSelectedPtr->y = (float)to_y;
 					
 		m_DLL->GetBroker()->Refresh(m_DLL->GetBroker()->GetParentPtr());
 		textlat->SetForegroundColour(wxSYS_COLOUR_WINDOWTEXT);

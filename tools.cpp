@@ -146,7 +146,11 @@ wxString FormatLongitude(float x)
 {
       wxString str;
 
-      if (x > 0.0f) {
+      if(x == 0)
+		  return str = wxString::Format(_("%s"), ConvertDegree(0).wc_str());
+	  
+	  if (x > 0.0f) 
+	  {
         if (x <= 180.0f)
 			str = wxString::Format(_("%s E"), ConvertDegree(x).wc_str());
         else
@@ -165,6 +169,8 @@ wxString FormatLatitude(float y)
 {
 	
 	wxString str;
+	 if(y == 0)
+		  return str = wxString::Format(_("%s"), ConvertDegree(0).wc_str());
 
     if (y > 0)
 		str = wxString::Format(_("%s N"), ConvertDegree(y).wc_str());
@@ -223,8 +229,9 @@ bool SetLat(char *text, float *val)
 	
 	sscanf(buffer,"%d° %d' %f'' %c",&degree,&min,&sec,&dindicator);
 	bool result = true;	
-	if(dindicator != 'S' && dindicator != 'N')
-		result = false;
+	if(degree != 0 && min != 0 && sec != 0)
+		if(dindicator != 'S' && dindicator != 'N')
+			result = false;
 		
 	if(degree > 90 || degree < 0)
 		result = false;
@@ -242,9 +249,14 @@ bool SetLat(char *text, float *val)
 		y = degree + ((float)_min/60);
 				
 		if(dindicator == 'N')
-			*val = -y;
-		else
+		{
+			if(y == 0)
+				*val = y;
+			else
+				*val = -y;
+		}else{
 			*val = y;
+		}
 	
 	}else{
 			
@@ -265,9 +277,9 @@ bool SetLon(char *text, float *val)
 
 	sscanf(buffer,"%d° %d' %f'' %c",&degree,&min,&sec,&dindicator);
 	bool result = true;	
-	
-	if(dindicator != 'W' && dindicator != 'E')
-		result = false;
+	if(degree != 0 && min != 0 && sec != 0)
+		if(dindicator != 'W' && dindicator != 'E')
+			result = false;
 		
 	if(degree > 180 || degree < 0)
 		result = false;
@@ -285,9 +297,15 @@ bool SetLon(char *text, float *val)
 		x = degree + ((float)_min/60);
 				
 		if(dindicator == 'W')
-			*val = -x;
-		else
+		{
+			if(x == 0)
+				*val = x;
+			else
+				*val = -x;
+			
+		}else{
 			*val = x;
+		}
 	
 	}else{
 	

@@ -811,7 +811,8 @@ void CDLL::RenderDistance()
 		Broker->Project(x1,y1,&_x1,&_y1);
 		Broker->Project(x2,y2,&_x2,&_y2);
 		swprintf(val,L"%4.4f %s",nvDistance(_x1,_y1,_x2,_y2,DistanceUnit),GetDistanceUnit(DistanceUnit));
-			
+		fprintf(stdout,"Project: %4.4f %s\n",nvDistance(_x1,_y1,_x2,_y2,DistanceUnit),GetDistanceUnit(DistanceUnit));	
+		fprintf(stdout,"UNproject: %4.4f %s\n",nvDistance(x1,y1,x2,y2,DistanceUnit),GetDistanceUnit(DistanceUnit));	
 		double v1,v2;
 		nvMidPoint(x1,y1,x2,y2,&v1,&v2);
 
