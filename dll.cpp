@@ -72,6 +72,18 @@ CDLL::CDLL(CNaviBroker *NaviBroker)	:CNaviMapIOApi(NaviBroker)
 	SelectedPtr = HighlightedPtr = NULL;
 	DBLClick = false;
 
+	Font = new nvFastFont();
+	Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );		// 1 = nvAriali 
+	Font->SetEffect( nvEFFECT_SMOOTH );
+	Font->SetEffect( nvEFFECT_GLOW );
+    
+	Font->SetGlyphColor(1.0f, 0.0f, 0.0f);
+	//Font->SetGlyphCenter(0.0001f);
+    //Font->SetGlyphOffset( 0.5f );
+
+	Font->SetGlowColor(0.8f, 0.8f, 0.8f );
+	Font->SetGlowCenter( 4.0f );
+		
 	this->AddExecuteFunction("marker_MarkerNew", MarkerNew);
 	this->AddExecuteFunction("marker_MarkerGet",MarkerGet);
 	this->AddExecuteFunction("marker_MarkerCount",MarkerCount);
@@ -107,10 +119,16 @@ size_t CDLL::GetMarkerIconsCount()
 	return MarkerIcons->Count();
 }
 
+void CDLL::OnInitGL()
+{
+	Font->InitGL();
+}
+
 SIcon *CDLL::GetMarkerIcon(int id)
 {
 	return MarkerIcons->GetItem(id);
 }
+
 void CDLL::SetMarkerTextureID(int id)
 {
 	SelectedTextureID = id;
@@ -815,12 +833,15 @@ void CDLL::RenderDistance()
 		fprintf(stdout,"UNproject: %4.4f %s\n",nvDistance(x1,y1,x2,y2,DistanceUnit),GetDistanceUnit(DistanceUnit));	
 		double v1,v2;
 		nvMidPoint(x1,y1,x2,y2,&v1,&v2);
-
-		glPushMatrix();
-			
-		glTranslatef(v1 ,v2 ,0.0f);
-		glScalef(0.6/MapScale,0.6/MapScale,0.0);
-		glPopMatrix();
+		
+		//glPushMatrix();
+		
+		float scale = (1 / MapScale) / 8;
+		Font->Clear();
+		Font->Print(v1,v2,scale,0.0,val);
+		//glTranslatef(v1 ,v2 ,0.0f);
+		//glScalef(0.6/MapScale,0.6/MapScale,0.0);
+		//glPopMatrix();
 			
 		
 	}
@@ -942,7 +963,7 @@ void CDLL::RenderMarkers()
 void CDLL::Render(void)
 {
 	glEnable(GL_BLEND);
-	
+	Font->Clear();
 	
 	MapScale = Broker->GetMapScale();
 	Angle = GetBroker()->GetAngle();
@@ -968,6 +989,9 @@ void CDLL::Render(void)
 	if(HighlightedPtr != NULL)
 		RenderHighlighted();
 
+	Font->ClearBuffers();
+	Font->CreateBuffers();
+	Font->Render();
 	glDisable(GL_BLEND);
 	
 }

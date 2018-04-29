@@ -97,9 +97,8 @@ wxString GetConfigFile()
 wxString GetWorkDir()
 {
 	static wxString buffer;
-	wxStandardPaths *Paths = new wxStandardPaths();
-	buffer.Printf(wxT("%s%s%s%s"), Paths->GetUserDataDir().wc_str(wxConvUTF8),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR), wxT(DIR_SEPARATOR) );
-	delete Paths;
+	wxStandardPaths Paths = wxStandardPaths::Get();
+	buffer.Printf(wxT("%s%s%s%s"), Paths.GetUserDataDir().wc_str(wxConvUTF8),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR), wxT(DIR_SEPARATOR) );
 	return buffer;
 }
 

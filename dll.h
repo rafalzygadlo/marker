@@ -9,6 +9,7 @@
 #include "NaviDisplayApi.h"
 #include "conf.h"
 #include "positiondialog.h"
+#include "nvFastFont.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -73,6 +74,7 @@ class CDLL :public CNaviMapIOApi
 	double VisibleMap[4];
 	bool FromLMB;
 	int DistanceUnit;
+	nvFastFont *Font;
 
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateApiMenu(void);
@@ -161,6 +163,7 @@ public:
 	virtual void Config();
 	virtual void Mouse(int x, int y, bool lmb, bool mmb, bool rmb );
 	virtual void MouseDBLClick(int x, int y);
+	virtual void OnInitGL();
 	
 	static void *MarkerNew(void *NaviMapIOApiPtr, void *Params);
 	static void *MarkerCount(void *NaviMapIOApiPtr, void *Params);
